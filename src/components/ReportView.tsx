@@ -1,4 +1,5 @@
 import React from 'react'
+import { MAIN_MENU_STYLE_REACT } from '../styleConfig'
 
 interface Props {
   entries: any[]
@@ -8,6 +9,7 @@ interface Props {
   setSelectedMonth: (v: string) => void
   years: number[]
   monthsInYear: number[]
+  categories?: {id: number, name: string, user_id: string}[]
 }
 
 // Thêm Gauge chart
@@ -36,9 +38,15 @@ const ReportView: React.FC<Props> = ({
   selectedMonth,
   setSelectedMonth,
   years,
-  monthsInYear
+  monthsInYear,
+  categories = []
 }) => {
-  const { stats } = getCategoryStats(entries)
+  // Thêm filter theo danh mục
+  const [selectedCategory, setSelectedCategory] = React.useState<string>('all')
+  const filteredEntries = selectedCategory === 'all'
+    ? entries
+    : entries.filter(e => e.category === selectedCategory)
+  const { stats } = getCategoryStats(filteredEntries)
   // Tạo dữ liệu cho gauge chart
   let offset = 0
   const arcs = stats.map((s, i) => {
@@ -48,24 +56,39 @@ const ReportView: React.FC<Props> = ({
     return { ...s, color: COLORS[i % COLORS.length], start, end }
   })
   // Sắp xếp entries theo ngày giảm dần (mới nhất lên đầu)
-  const sortedEntries = [...entries].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const sortedEntries = [...filteredEntries].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  // Paging state for report table
+  const [page, setPage] = React.useState(1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
+  const totalEntries = sortedEntries.length;
+  const totalPages = Math.max(1, Math.ceil(totalEntries / itemsPerPage));
+  React.useEffect(() => { setPage(1); }, [itemsPerPage, selectedCategory, selectedYear, selectedMonth]);
+  const pagedEntries = sortedEntries.slice((page - 1) * itemsPerPage, page * itemsPerPage);
   return (
-    <div style={{background:'#fff',borderRadius:16,padding:32,marginBottom:32,boxShadow:'0 2px 16px #0001', color:'#222'}}>
-      <div style={{marginBottom:24,display:'flex',alignItems:'center',gap:24}}>
+    <div className="report-view" style={MAIN_MENU_STYLE_REACT}>
+      <div style={{marginBottom:24,display:'flex',alignItems:'center',gap:16,flexWrap:'wrap',justifyContent:'center'}}>
         <label style={{fontWeight:600, color:'#222'}}>Năm:</label>
-        <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} style={{padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff'}}>
+        <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} style={{padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff',minWidth:90}}>
           {years.length === 0 && <option>{new Date().getFullYear()}</option>}
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </select>
         <label style={{fontWeight:600, color:'#222'}}>Tháng:</label>
-        <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} style={{padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff'}}>
+        <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} style={{padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff',minWidth:90}}>
           <option value="all">Tất cả</option>
           {monthsInYear.map(m => <option key={m} value={m}>{m}</option>)}
+        </select>
+        {/* Filter theo danh mục */}
+        <label style={{fontWeight:600, color:'#222'}}>Danh mục:</label>
+        <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} style={{padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff',minWidth:90}}>
+          <option value="all">Tất cả</option>
+          {categories.map(cat => (
+            <option key={cat.id} value={cat.name}>{cat.name}</option>
+          ))}
         </select>
       </div>
       <h2 style={{marginBottom:24,fontSize:26,fontWeight:800,color:'#2ecc40'}}>Báo cáo {selectedMonth === 'all' ? `năm ${selectedYear}` : `tháng ${selectedMonth}/${selectedYear}`}</h2>
       <div style={{marginBottom:16, fontSize:18, fontWeight:600, color:'#222'}}>
-        Tổng chi tiêu: {entries.reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}₫
+        Tổng chi tiêu: {filteredEntries.reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}₫
       </div>
       <div style={{display:'flex',gap:32,marginBottom:32,alignItems:'center'}}>
         <div style={{position:'relative',width:220,height:220}}>
@@ -111,18 +134,36 @@ const ReportView: React.FC<Props> = ({
               </tr>
             </thead>
             <tbody>
-              {sortedEntries.map((entry: any) => (
+              {pagedEntries.map((entry: any) => (
                 <tr key={entry.id} style={{borderBottom:'1px solid #f0f0f0'}}>
                   <td style={{padding:12, color:'#222'}}>{entry.category}</td>
                   <td style={{padding:12, color:'#222'}}>{entry.description}</td>
                   <td style={{padding:12, color:'#222'}}>{entry.amount.toLocaleString()}₫</td>
-                  <td style={{padding:12, color:'#222'}}>{entry.date}</td>
+                  <td style={{padding:12, color:'#222'}}>{new Date(entry.date).toISOString().slice(0, 10)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {entries.length === 0 && <div style={{padding:24,textAlign:'center',color:'#aaa'}}>Không có giao dịch nào</div>}
+          {sortedEntries.length === 0 && <div style={{padding:24,textAlign:'center',color:'#aaa'}}>Không có giao dịch nào</div>}
         </div>
+        {/* Paging controls for report table */}
+        {totalEntries > 0 && (
+          <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,margin:'18px 0'}}>
+            <button onClick={()=>setPage(1)} disabled={page===1} style={{padding:'6px 12px',borderRadius:6}}>&laquo;</button>
+            <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1} style={{padding:'6px 12px',borderRadius:6}}>&lsaquo;</button>
+            <span style={{fontWeight:600}}>Trang</span>
+            <select value={page} onChange={e=>setPage(Number(e.target.value))} style={{padding:'6px 10px',borderRadius:6}}>
+              {Array.from({length: totalPages}, (_,i)=>i+1).map(p=>(<option key={p} value={p}>{p}</option>))}
+            </select>
+            <span style={{fontWeight:600}}>/ {totalPages}</span>
+            <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page===totalPages} style={{padding:'6px 12px',borderRadius:6}}>&rsaquo;</button>
+            <button onClick={()=>setPage(totalPages)} disabled={page===totalPages} style={{padding:'6px 12px',borderRadius:6}}>&raquo;</button>
+            <span style={{marginLeft:16}}>Hiển thị</span>
+            <select value={itemsPerPage} onChange={e=>setItemsPerPage(Number(e.target.value))} style={{padding:'6px 10px',borderRadius:6}}>
+              {[5,10,20,50,100].map(n=>(<option key={n} value={n}>{n}/trang</option>))}
+            </select>
+          </div>
+        )}
       </div>
     </div>
   )

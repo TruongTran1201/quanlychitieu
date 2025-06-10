@@ -202,18 +202,79 @@
   margin-bottom: 0.5rem;
   color: #646cff;
 }
-@media (max-width: 500px) {
-  .savings-app {
-    padding: 1rem 0.5rem;
+td, th {
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Đảm bảo các cell mô tả, category, email, v.v. đều fit khung và có ... */
+.entry-manager td, .entry-manager th,
+.report-view td, .report-view th,
+.admin-panel td, .admin-panel th {
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Nếu có các span hiển thị text dài trong bảng */
+.entry-manager span, .report-view span, .admin-panel span {
+  display: inline-block;
+  max-width: 170px;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 700px) {
+  td, th, .entry-manager td, .entry-manager th, .report-view td, .report-view th, .admin-panel td, .admin-panel th {
+    max-width: 90px;
+  }
+  .entry-manager span, .report-view span, .admin-panel span {
+    max-width: 80px;
   }
 }
-@media (max-width: 600px) {
-  .expense-app {
-    padding: 1rem 0.5rem;
+/* Responsive for mobile/tablet */
+@media (max-width: 700px) {
+  .app > div,
+  .admin-panel,
+  .category-manager,
+  .entry-manager,
+  .report-view {
+    max-width: 100vw !important;
+    padding: 8px 2vw !important;
+    border-radius: 10px !important;
+    margin: 0 auto 16px auto !important;
+    font-size: 15px !important;
   }
-  .entry-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.2rem;
+  table {
+    font-size: 14px !important;
+  }
+  h2, h3, h4 {
+    font-size: 20px !important;
+  }
+  select, input, button {
+    font-size: 15px !important;
+    padding: 10px 8px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .app > div,
+  .admin-panel,
+  .category-manager,
+  .entry-manager,
+  .report-view {
+    padding: 4px 1vw !important;
+    font-size: 14px !important;
+  }
+  table {
+    font-size: 13px !important;
+  }
+  h2, h3, h4 {
+    font-size: 17px !important;
   }
 }

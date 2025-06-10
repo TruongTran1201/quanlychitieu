@@ -1,4 +1,5 @@
 import React from 'react'
+import { MAIN_MENU_STYLE_REACT } from '../styleConfig'
 
 interface Category {
   id: number
@@ -35,11 +36,11 @@ const CategoryManager: React.FC<Props> = ({
   cancelEditCategory,
   catInputRef
 }) => (
-  <div style={{background:'#fff',borderRadius:16,padding:32,marginBottom:32,boxShadow:'0 2px 16px #0001', color:'#222'}}>
-    <h3 style={{marginBottom:24,fontSize:26,fontWeight:800,color:'#2ecc40'}}>Quản lý danh mục</h3>
-    <form onSubmit={addCategory} style={{display:'flex',gap:12,marginBottom:20}}>
-      <input ref={catInputRef} value={catName} onChange={e=>setCatName(e.target.value)} placeholder="Thêm danh mục mới" style={{flex:1,padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff'}} />
-      <button type="submit" style={{padding:'12px 24px',borderRadius:8,background:'#2ecc40',color:'#fff',border:'none',fontWeight:700,fontSize:16}}>Thêm</button>
+  <div className="category-manager" style={MAIN_MENU_STYLE_REACT}>
+    <h3 style={{marginBottom:24,fontSize:24,fontWeight:800,color:'#2ecc40',textAlign:'center'}}>Quản lý danh mục</h3>
+    <form onSubmit={addCategory} style={{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap',alignItems:'center'}}>
+      <input ref={catInputRef} value={catName} onChange={e=>setCatName(e.target.value)} placeholder="Thêm danh mục mới" style={{flex:1,minWidth:120,padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff'}} />
+      <button type="submit" style={{padding:'12px 18px',borderRadius:8,background:'#2ecc40',color:'#fff',border:'none',fontWeight:700,fontSize:16,minWidth:90}}>Thêm</button>
     </form>
     <ul style={{listStyle:'none',padding:0,margin:0}}>
       {categories.map(cat => (
