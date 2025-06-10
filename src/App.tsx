@@ -104,13 +104,16 @@ function App() {
     <div className="app" style={{minHeight:'100vh',background:'#f6f8fa',fontFamily:'Segoe UI,Roboto,sans-serif'}}>
       <div style={{width:'100%',maxWidth:900,minWidth:0,margin:'0 auto',padding:'48px 8px',position:'relative',boxSizing:'border-box'}}>
         {/* User info top right */}
-        {auth.user && (
-          <div style={{position:'absolute',top:0,right:0,display:'flex',alignItems:'center',gap:12,zIndex:2}}>
-            <span style={{fontWeight:600, color:'#222',fontSize:15}}>{auth.user.email}</span>
-            <button className="logout-btn" onClick={auth.handleLogout} style={{padding:'10px 18px',borderRadius:6,background:'#e74c3c',color:'#fff',border:'none',fontWeight:600,fontSize:16}}>Đăng xuất</button>
-          </div>
-        )}
-        <h2 style={{fontWeight:800,fontSize:32,letterSpacing:1,color:'#2ecc40',margin:'0 0 32px 0',textAlign:'center'}}>Quản lý chi tiêu</h2>
+        {/* User info top right */}
+<div className="user-info-bar">
+  {auth.user && (
+    <>
+      <span className="user-email">{auth.user.email}</span>
+      <button className="logout-btn" onClick={auth.handleLogout}>Đăng xuất</button>
+    </>
+  )}
+</div>
+<h2 className="main-title">Quản lý chi tiêu</h2>
         <div style={{display:'flex',alignItems:'center',justifyContent:'center',marginBottom:32}}>
           <select
             id="main-menu"

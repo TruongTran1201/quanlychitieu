@@ -11,4 +11,5 @@ export const MAIN_MENU_STYLE_REACT: React.CSSProperties = {
   minWidth: 0,
   width: '100%',
   boxSizing: 'border-box' as const,
+  overflowX: 'auto',
 };

@@ -278,3 +278,32 @@ td, th {
     font-size: 17px !important;
   }
 }
+
+.user-info-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
+}
+.main-title {
+  font-weight: 800;
+  font-size: 32px;
+  letter-spacing: 1px;
+  color: #2ecc40;
+  margin: 0 0 32px 0;
+  text-align: center;
+}
+@media (max-width: 700px) {
+  .user-info-bar {
+    position: static;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .main-title {
+    font-size: 22px;
+    margin-top: 0;
+  }
+}
