@@ -65,10 +65,10 @@ function App() {
 
   if (auth.showHome) {
     return (
-      <div className="homepage" style={{minHeight:'100vh',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',background:'#222'}}>
-        <h1 style={{fontSize:48,marginBottom:16,color:'#2ecc40',fontWeight:900,letterSpacing:1}}>Quản lý chi tiêu</h1>
-        <p style={{fontSize:22,marginBottom:40,color:'#fff',fontWeight:400}}>Quản lý chi tiêu cá nhân</p>
-        <div style={{background:'#fff',padding:40,borderRadius:16,boxShadow:'0 4px 32px #0002',minWidth:340}}>
+      <div className="homepage" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#222' }}>
+        <h1 style={{ fontSize: 48, marginBottom: 16, color: '#2ecc40', fontWeight: 900, letterSpacing: 1 }}>Quản lý chi tiêu</h1>
+        <p style={{ fontSize: 22, marginBottom: 40, color: '#fff', fontWeight: 400 }}>Quản lý chi tiêu cá nhân</p>
+        <div style={{ background: '#fff', padding: 40, borderRadius: 16, boxShadow: '0 4px 32px #0002', minWidth: 340 }}>
           <form className="auth-form" onSubmit={auth.handleAuth}>
             <input
               type="email"
@@ -76,7 +76,7 @@ function App() {
               value={auth.authEmail}
               onChange={e => auth.setAuthEmail(e.target.value)}
               required
-              style={{width:'100%',padding:14,marginBottom:16,borderRadius:8,border:'1px solid #ccc',fontSize:17}}
+              style={{ width: '100%', padding: 14, marginBottom: 16, borderRadius: 8, border: '1px solid #ccc', fontSize: 17 }}
             />
             <input
               type="password"
@@ -84,16 +84,16 @@ function App() {
               value={auth.authPassword}
               onChange={e => auth.setAuthPassword(e.target.value)}
               required
-              style={{width:'100%',padding:14,marginBottom:16,borderRadius:8,border:'1px solid #ccc',fontSize:17}}
+              style={{ width: '100%', padding: 14, marginBottom: 16, borderRadius: 8, border: '1px solid #ccc', fontSize: 17 }}
             />
-            <div className="auth-actions" style={{display:'flex',flexDirection:'column',gap:10,marginBottom:10}}>
-              <button type="submit" className="auth-btn" style={{padding:'12px 0',borderRadius:8,background:'#2ecc40',color:'#fff',border:'none',fontSize:18,fontWeight:700,letterSpacing:1}}>{auth.isSignUp ? 'Đăng ký' : 'Đăng nhập'}</button>
-              <button type="button" className="switch-auth-btn" style={{background:'none',border:'none',color:'#2ecc40',textDecoration:'underline',fontSize:15}} onClick={() => auth.setIsSignUp(!auth.isSignUp)}>
+            <div className="auth-actions" style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 10 }}>
+              <button type="submit" className="auth-btn" style={{ padding: '12px 0', borderRadius: 8, background: '#2ecc40', color: '#fff', border: 'none', fontSize: 18, fontWeight: 700, letterSpacing: 1 }}>{auth.isSignUp ? 'Đăng ký' : 'Đăng nhập'}</button>
+              <button type="button" className="switch-auth-btn" style={{ background: 'none', border: 'none', color: '#2ecc40', textDecoration: 'underline', fontSize: 15 }} onClick={() => auth.setIsSignUp(!auth.isSignUp)}>
                 {auth.isSignUp ? 'Đã có tài khoản? Đăng nhập' : 'Chưa có tài khoản? Đăng ký'}
               </button>
             </div>
-            {auth.authError && <div className="auth-error" style={{color:'#e74c3c',marginBottom:8}}>{auth.authError}</div>}
-            {auth.signUpNotice && <div className="sign-up-notice" style={{color:'#2ecc40',marginBottom:8}}>{auth.signUpNotice}</div>}
+            {auth.authError && <div className="auth-error" style={{ color: '#e74c3c', marginBottom: 8 }}>{auth.authError}</div>}
+            {auth.signUpNotice && <div className="sign-up-notice" style={{ color: '#2ecc40', marginBottom: 8 }}>{auth.signUpNotice}</div>}
           </form>
         </div>
       </div>
@@ -101,25 +101,25 @@ function App() {
   }
 
   return (
-    <div className="app" style={{minHeight:'100vh',background:'#f6f8fa',fontFamily:'Segoe UI,Roboto,sans-serif'}}>
-      <div style={{width:'100%',maxWidth:900,minWidth:0,margin:'0 auto',padding:'48px 8px',position:'relative',boxSizing:'border-box'}}>
+    <div className="app" style={{ minHeight: '100vh', background: '#f6f8fa', fontFamily: 'Segoe UI,Roboto,sans-serif' }}>
+      <div style={{ width: '100%', maxWidth: 900, minWidth: 0, margin: '0 auto', padding: '48px 8px', position: 'relative', boxSizing: 'border-box' }}>
         {/* User info top right */}
         {/* User info top right */}
-<div className="user-info-bar">
-  {auth.user && (
-    <>
-      <span className="user-email">{auth.user.email}</span>
-      <button className="logout-btn" onClick={auth.handleLogout}>Đăng xuất</button>
-    </>
-  )}
-</div>
-<h2 className="main-title">Quản lý chi tiêu</h2>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'center',marginBottom:32}}>
+        <div className="user-info-bar">
+          {auth.user && (
+            <>
+              <span className="user-email">{auth.user.email}</span>
+              <button className="logout-btn" onClick={auth.handleLogout}>Đăng xuất</button>
+            </>
+          )}
+        </div>
+        <h2 className="main-title">Quản lý chi tiêu</h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 32 }}>
           <select
             id="main-menu"
             value={activeTab}
-            onChange={e => setActiveTab(e.target.value as 'entry'|'report'|'category'|'admin')}
-            style={{padding:14,borderRadius:8,border:'none',fontSize:18,background:'#fff',color:'#222',fontWeight:600,boxShadow:'0 2px 8px #0001',outline:'none',cursor:'pointer',minWidth:160}}
+            onChange={e => setActiveTab(e.target.value as 'entry' | 'report' | 'category' | 'admin')}
+            style={{ padding: 14, borderRadius: 8, border: 'none', fontSize: 18, background: '#fff', color: '#222', fontWeight: 600, boxShadow: '0 2px 8px #0001', outline: 'none', cursor: 'pointer', minWidth: 160 }}
           >
             <option value="entry">📝 Nhập chi tiêu</option>
             <option value="report">📊 Báo cáo</option>
@@ -131,7 +131,7 @@ function App() {
             )}
           </select>
         </div>
-        <div style={{width:'100%',maxWidth:600,margin:'0 auto'}}>
+        <div style={{ width: '100%', maxWidth: 600, margin: '0 auto' }}>
           {activeTab === 'entry' && (
             <>
               {/* Filter controls */}
@@ -144,12 +144,12 @@ function App() {
                 setEntryFilterMonth={setEntryFilterMonth}
               />
               {entriesState.entryNotice && (
-                <div style={{marginBottom:12, color: entriesState.entryNotice.includes('thành công') ? '#2ecc40' : '#e74c3c', fontWeight:600}}>
+                <div style={{ marginBottom: 12, color: entriesState.entryNotice.includes('thành công') ? '#2ecc40' : '#e74c3c', fontWeight: 600 }}>
                   {entriesState.entryNotice}
                 </div>
               )}
               {entriesState.loading && (
-                <div style={{marginBottom:12, color:'#888'}}>Đang tải dữ liệu...</div>
+                <div style={{ marginBottom: 12, color: '#888' }}>Đang tải dữ liệu...</div>
               )}
               <EntryManager
                 entries={filteredPagedEntries}
@@ -168,19 +168,19 @@ function App() {
                 descInputRef={entriesState.descInputRef as React.RefObject<HTMLInputElement>}
               />
               {/* Paging controls */}
-              <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,margin:'18px 0'}}>
-                <button onClick={()=>setPage(1)} disabled={page===1} style={{padding:'6px 12px',borderRadius:6}}>«</button>
-                <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1} style={{padding:'6px 12px',borderRadius:6}}>‹</button>
-                <span style={{fontWeight:600}}>Trang</span>
-                <select value={page} onChange={e=>setPage(Number(e.target.value))} style={{padding:'6px 10px',borderRadius:6}}>
-                  {Array.from({length: filteredTotalPages}, (_,i)=>i+1).map(p=>(<option key={p} value={p}>{p}</option>))}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, margin: '18px 0' }}>
+                <button onClick={() => setPage(1)} disabled={page === 1} style={{ padding: '6px 12px', borderRadius: 6 }}>«</button>
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: '6px 12px', borderRadius: 6 }}>‹</button>
+                <span style={{ fontWeight: 600 }}>Trang</span>
+                <select value={page} onChange={e => setPage(Number(e.target.value))} style={{ padding: '6px 10px', borderRadius: 6 }}>
+                  {Array.from({ length: filteredTotalPages }, (_, i) => i + 1).map(p => (<option key={p} value={p}>{p}</option>))}
                 </select>
-                <span style={{fontWeight:600}}>/ {filteredTotalPages}</span>
-                <button onClick={()=>setPage(p=>Math.min(filteredTotalPages,p+1))} disabled={page===filteredTotalPages} style={{padding:'6px 12px',borderRadius:6}}>›</button>
-                <button onClick={()=>setPage(filteredTotalPages)} disabled={page===filteredTotalPages} style={{padding:'6px 12px',borderRadius:6}}>»</button>
-                <span style={{marginLeft:16}}>Hiển thị</span>
-                <select value={itemsPerPage} onChange={e=>setItemsPerPage(Number(e.target.value))} style={{padding:'6px 10px',borderRadius:6}}>
-                  {[5,10,20,50,100].map(n=>(<option key={n} value={n}>{n}/trang</option>))}
+                <span style={{ fontWeight: 600 }}>/ {filteredTotalPages}</span>
+                <button onClick={() => setPage(p => Math.min(filteredTotalPages, p + 1))} disabled={page === filteredTotalPages} style={{ padding: '6px 12px', borderRadius: 6 }}>›</button>
+                <button onClick={() => setPage(filteredTotalPages)} disabled={page === filteredTotalPages} style={{ padding: '6px 12px', borderRadius: 6 }}>»</button>
+                <span style={{ marginLeft: 16 }}>Hiển thị</span>
+                <select value={itemsPerPage} onChange={e => setItemsPerPage(Number(e.target.value))} style={{ padding: '6px 10px', borderRadius: 6 }}>
+                  {[5, 10, 20, 50, 100].map(n => (<option key={n} value={n}>{n}/trang</option>))}
                 </select>
               </div>
             </>
@@ -200,7 +200,7 @@ function App() {
           {activeTab === 'category' && (rolesState.roleName === 'SuperAdmin' || rolesState.roleName.includes('Category')) && (
             <>
               {categoriesState.categoryNotice && (
-                <div style={{marginBottom:12, color: categoriesState.categoryNotice.includes('thành công') ? '#2ecc40' : '#e74c3c', fontWeight:600}}>
+                <div style={{ marginBottom: 12, color: categoriesState.categoryNotice.includes('thành công') ? '#2ecc40' : '#e74c3c', fontWeight: 600 }}>
                   {categoriesState.categoryNotice}
                 </div>
               )}
