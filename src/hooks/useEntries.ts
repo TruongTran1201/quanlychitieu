@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
-import { getYear, getMonth, getNowDatetimeLocal } from '../utils/entryUtils';
+import { getNowDatetimeLocal } from '../utils/entryUtils';
 import type { Entry } from '../utils/entryUtils';
 
 export function useEntries(user: any) {
