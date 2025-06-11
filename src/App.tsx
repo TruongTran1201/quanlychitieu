@@ -4,7 +4,6 @@ import { useAuth } from './hooks/useAuth';
 import { useEntries } from './hooks/useEntries';
 import { useCategories } from './hooks/useCategories';
 import { useRoles } from './hooks/useRoles';
-import EntryFilterBar from './components/EntryFilterBar';
 import CategoryManager from './components/CategoryManager';
 import EntryManager from './components/EntryManager';
 import ReportView from './components/ReportView';
@@ -134,22 +133,6 @@ function App() {
           {activeTab === 'entry' && (
             <>
               {/* Filter controls */}
-              <EntryFilterBar
-                categories={categoriesState.categories.map(({ id, name }) => ({ id: id.toString(), name }))}
-                entryMonths={entryMonths}
-                entryFilterCategory={entryFilterCategory}
-                setEntryFilterCategory={setEntryFilterCategory}
-                entryFilterMonth={entryFilterMonth}
-                setEntryFilterMonth={setEntryFilterMonth}
-              />
-              {entriesState.entryNotice && (
-                <div style={{ marginBottom: 12, color: entriesState.entryNotice.includes('thành công') ? '#2ecc40' : '#e74c3c', fontWeight: 600 }}>
-                  {entriesState.entryNotice}
-                </div>
-              )}
-              {entriesState.loading && (
-                <div style={{ marginBottom: 12, color: '#888' }}>Đang tải dữ liệu...</div>
-              )}
               <EntryManager
                 entries={filteredPagedEntries}
                 loading={entriesState.loading}
@@ -165,6 +148,11 @@ function App() {
                 setDate={entriesState.setDate}
                 categories={categoriesState.categories}
                 descInputRef={entriesState.descInputRef as React.RefObject<HTMLInputElement>}
+                entryFilterCategory={entryFilterCategory}
+                setEntryFilterCategory={setEntryFilterCategory}
+                entryFilterMonth={entryFilterMonth}
+                setEntryFilterMonth={setEntryFilterMonth}
+                entryMonths={entryMonths}
               />
               {/* Paging controls */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, margin: '18px 0' }}>

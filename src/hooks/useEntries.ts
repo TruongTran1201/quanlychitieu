@@ -75,16 +75,16 @@ export function useEntries(user: any) {
     }
   };
 
-  const updateEntry = async (id: number, newDesc: string, newAmount: number, newDate: string) => {
+  const updateEntry = async (id: number, newCategory: string, newDesc: string, newAmount: number, newDate: string) => {
     if (!user) return;
     const { data, error } = await supabase
       .from('entries')
-      .update({ description: newDesc, amount: newAmount, date: newDate })
+      .update({ category: newCategory, description: newDesc, amount: newAmount, date: newDate })
       .eq('id', id)
       .eq('user_id', user.id)
       .select();
     if (!error && data && data[0]) {
-      setEntries(entries.map(e => e.id === id ? { ...e, description: newDesc, amount: newAmount, date: newDate } : e));
+      setEntries(entries.map(e => e.id === id ? { ...e, category: newCategory, description: newDesc, amount: newAmount, date: newDate } : e));
     }
   };
 

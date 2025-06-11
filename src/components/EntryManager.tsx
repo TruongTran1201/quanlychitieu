@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { MAIN_MENU_STYLE_REACT } from '../styleConfig'
 import { supabase } from '../supabaseClient'
 import EntryDetailModal from './EntryDetailModal'
+import EntryFilterBar from './EntryFilterBar'
 
 export interface Entry {
   id: number
@@ -27,6 +28,11 @@ interface Props {
   setDate: (v: string) => void
   categories: {id: number, name: string, user_id: string}[] // Thêm prop categories
   descInputRef?: React.RefObject<HTMLInputElement>; // Thêm prop descInputRef
+  entryFilterCategory: string;
+  setEntryFilterCategory: (cat: string) => void;
+  entryFilterMonth: string;
+  setEntryFilterMonth: (month: string) => void;
+  entryMonths: number[];
 }
 
 const EntryManager: React.FC<Props> = ({
@@ -43,16 +49,21 @@ const EntryManager: React.FC<Props> = ({
   date,
   setDate,
   categories,
-  descInputRef
+  descInputRef,
+  entryFilterCategory,
+  setEntryFilterCategory,
+  entryFilterMonth,
+  setEntryFilterMonth,
+  entryMonths
 }) => {
   const [editId, setEditId] = useState<number|null>(null)
   const [editDesc, setEditDesc] = useState('')
   const [editAmount, setEditAmount] = useState('')
   const [editDate, setEditDate] = useState('')
+  const [editCategory, setEditCategory] = useState('');
   const [imageModalEntry, setImageModalEntry] = useState<Entry|null>(null);
   const [imageFiles, setImageFiles] = useState<FileList|null>(null);
   const [uploading, setUploading] = useState(false);
-  const [entryImages, setEntryImages] = useState<{url:string}[]>([]);
   const [detailEntry, setDetailEntry] = useState<Entry|null>(null);
   const [detailImages, setDetailImages] = useState<{url:string}[]>([]);
   const [saveImageNotice, setSaveImageNotice] = useState<string>('');
@@ -62,30 +73,22 @@ const EntryManager: React.FC<Props> = ({
     setEditDesc(entry.description)
     setEditAmount(entry.amount.toString())
     setEditDate(entry.date)
+    setEditCategory(entry.category)
   }
   const cancelEdit = () => {
     setEditId(null)
     setEditDesc('')
     setEditAmount('')
     setEditDate('')
+    setEditCategory('')
   }
   const handleEditSave = () => {
     if (!editDesc.trim() || !editAmount.trim() || isNaN(Number(editAmount))) return
     // Gọi hàm updateEntry từ props nếu có, hoặc emit event
     if (typeof (window as any).updateEntry === 'function') {
-      (window as any).updateEntry(editId, editDesc, Number(editAmount), editDate)
+      (window as any).updateEntry(editId, editCategory, editDesc, Number(editAmount), editDate)
     }
     cancelEdit()
-  }
-
-  // Hàm lấy ảnh đã upload cho entry
-  async function fetchEntryImages(entryId: number) {
-    const { data, error } = await supabase
-      .from('entry_images')
-      .select('url')
-      .eq('entry_id', entryId);
-    if (!error && data) setEntryImages(data);
-    else setEntryImages([]);
   }
 
   const sortedEntries = [...entries].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -99,6 +102,20 @@ const EntryManager: React.FC<Props> = ({
       .eq('entry_id', entry.id);
     setDetailImages(!error && data ? data : []);
   };
+
+  // Hủy sửa khi click ra ngoài bảng
+  React.useEffect(() => {
+    if (editId !== null) {
+      const handleClick = (e: MouseEvent) => {
+        const table = document.getElementById('entry-table');
+        if (table && !table.contains(e.target as Node)) {
+          cancelEdit();
+        }
+      };
+      document.addEventListener('mousedown', handleClick);
+      return () => document.removeEventListener('mousedown', handleClick);
+    }
+  }, [editId]);
 
   return (
     <div className="entry-manager" style={MAIN_MENU_STYLE_REACT}>
@@ -115,9 +132,17 @@ const EntryManager: React.FC<Props> = ({
         <input value={date} onChange={e=>setDate(e.target.value)} type="datetime-local" style={{width:180,minWidth:120,padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff'}} />
         <button type="submit" style={{padding:'12px 18px',borderRadius:8,background:'#2ecc40',color:'#fff',border:'none',fontWeight:700,fontSize:16,minWidth:90}}>Thêm</button>
       </form>
+      <EntryFilterBar
+        categories={categories.map(({id, name}) => ({id: id.toString(), name}))}
+        entryMonths={entryMonths}
+        entryFilterCategory={entryFilterCategory}
+        setEntryFilterCategory={setEntryFilterCategory}
+        entryFilterMonth={entryFilterMonth}
+        setEntryFilterMonth={setEntryFilterMonth}
+      />
       {loading ? <div>Đang tải...</div> : (
         <div style={{overflowX:'auto'}}>
-          <table style={{width:'100%',borderCollapse:'collapse',background:'#fafbfc',borderRadius:8,overflow:'hidden',boxShadow:'0 1px 8px #0001', color:'#222', minWidth:480}}>
+          <table id="entry-table" style={{width:'100%',borderCollapse:'collapse',background:'#fafbfc',borderRadius:8,overflow:'hidden',boxShadow:'0 1px 8px #0001', color:'#222', minWidth:480}}>
             <thead>
               <tr style={{background:'#f5f6fa'}}>
                 <th style={{padding:12,borderBottom:'1px solid #eee',fontWeight:700, color:'#222'}}>Danh mục</th>
@@ -129,8 +154,22 @@ const EntryManager: React.FC<Props> = ({
             </thead>
             <tbody>
               {sortedEntries.map(entry => (
-                <tr key={entry.id} style={{borderBottom:'1px solid #f0f0f0', cursor:'pointer'}} onClick={() => handleShowDetail(entry)}>
-                  <td style={{padding:12, color:'#222'}}>{entry.category}</td>
+                <tr
+                  key={entry.id}
+                  style={{borderBottom:'1px solid #f0f0f0', cursor:'pointer'}}
+                  onClick={() => {
+                    if (editId !== entry.id) handleShowDetail(entry);
+                  }}
+                >
+                  <td style={{padding:12, color:'#222'}}>
+                    {editId === entry.id ? (
+                      <select value={editCategory} onChange={e=>setEditCategory(e.target.value)} style={{width:'100%',padding:8,borderRadius:6,border:'1px solid #ccc'}}>
+                        {categories.map(cat => (
+                          <option key={cat.id} value={cat.name}>{cat.name}</option>
+                        ))}
+                      </select>
+                    ) : entry.category}
+                  </td>
                   <td style={{padding:12, color:'#222'}}>
                     {editId === entry.id ? (
                       <input value={editDesc} onChange={e=>setEditDesc(e.target.value)} style={{width:'100%',padding:8,borderRadius:6,border:'1px solid #ccc'}} />
@@ -153,11 +192,10 @@ const EntryManager: React.FC<Props> = ({
                         <button onClick={cancelEdit} style={{padding:'8px 16px',borderRadius:6,background:'#aaa',color:'#fff',border:'none',fontWeight:600}}>Hủy</button>
                       </>
                     ) : (
-                      <div style={{position:'relative'}}>
+                      <div style={{position:'relative'}} onClick={e => e.stopPropagation()}>
                         <select
                           style={{padding:'6px 28px 6px 10px',borderRadius:6,border:'1px solid #ccc',fontSize:15,background:'#fff',color:'#222',cursor:'pointer'}}
                           defaultValue=""
-                          onClick={e => e.stopPropagation()} // Ngăn sự kiện click lan lên <tr>
                           onChange={e => {
                             if (e.target.value === 'add-image') setImageModalEntry(entry);
                             if (e.target.value === 'edit') startEdit(entry);

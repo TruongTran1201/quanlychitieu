@@ -55,31 +55,71 @@ const ReportView: React.FC<Props> = ({
     setDetailImages(!error && data ? data : []);
   };
 
+  // Pie chart data: tổng chi tiêu theo từng danh mục
+  const categorySums = filteredEntries.reduce((acc: Record<string, number>, e) => {
+    acc[e.category] = (acc[e.category] || 0) + (e.amount || 0);
+    return acc;
+  }, {});
+  const sumTotal = Object.values(categorySums).reduce((a, b) => a + b, 0);
+  const arcs = Object.entries(categorySums).map(([category, amount], i) => ({
+    category,
+    value: amount,
+    percent: sumTotal ? Math.round((amount / sumTotal) * 100) : 0,
+    color: COLORS[i % COLORS.length]
+  }));
+
+  // FilterBar style đồng bộ với EntryFilterBar
+  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => setSelectedYear(Number(e.target.value));
+  const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => setSelectedMonth(e.target.value);
+
   return (
     <div className="report-view" style={MAIN_MENU_STYLE_REACT}>
-      <div style={{marginBottom:24,display:'flex',alignItems:'center',gap:16,flexWrap:'wrap',justifyContent:'center'}}>
-        <label style={{fontWeight:600, color:'#222'}}>Năm:</label>
-        <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} style={{padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff',minWidth:90}}>
-          {years.length === 0 && <option>{new Date().getFullYear()}</option>}
-          {years.map(y => <option key={y} value={y}>{y}</option>)}
-        </select>
-        <label style={{fontWeight:600, color:'#222'}}>Tháng:</label>
-        <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} style={{padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff',minWidth:90}}>
-          <option value="all">Tất cả</option>
-          {monthsInYear.map(m => <option key={m} value={m}>{m}</option>)}
-        </select>
-        {/* Filter theo danh mục */}
-        <label style={{fontWeight:600, color:'#222'}}>Danh mục:</label>
-        <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} style={{padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff',minWidth:90}}>
-          <option value="all">Tất cả</option>
-          {categories.map(cat => (
-            <option key={cat.id} value={cat.name}>{cat.name}</option>
-          ))}
-        </select>
-      </div>
       <h2 style={{marginBottom:24,fontSize:26,fontWeight:800,color:'#2ecc40'}}>Báo cáo {selectedMonth === 'all' ? `năm ${selectedYear}` : `tháng ${selectedMonth}/${selectedYear}`}</h2>
+      {/* Pie chart tổng chi tiêu theo danh mục */}
+      {arcs.length > 0 && sumTotal > 0 && (
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',marginBottom:24,gap:32,flexWrap:'wrap'}}>
+          <PieChart arcs={arcs} />
+          <div>
+            {arcs.map(arc => (
+              <div key={arc.category} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                <span style={{minWidth:38,height:24,borderRadius:6,background:arc.color,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:700,fontSize:15,position:'relative',padding:'0 8px'}}>
+                  {arc.percent > 0 ? arc.percent + '%' : ''}
+                </span>
+                <span style={{fontWeight:600,color:'#222'}}>{arc.category}</span>
+                <span style={{color:'#888',marginLeft:8}}>{formatMoneyShort(arc.value)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div style={{marginBottom:16, fontSize:18, fontWeight:600, color:'#222'}}>
         Tổng chi tiêu: {totalAmount.toLocaleString()}₫
+      </div>
+      {/* FilterBar style đồng bộ EntryFilterBar */}
+      <div style={{marginBottom:24,display:'flex',gap:16,alignItems:'center',flexWrap:'wrap',justifyContent:'center'}}>
+        <div style={{display:'flex',flexDirection:'column'}}>
+          <label htmlFor="report-year" style={{fontWeight:600,color:'#222',marginBottom:4,fontSize:15}}>Năm</label>
+          <select id="report-year" value={selectedYear} onChange={handleYearChange} style={{padding:8,borderRadius:6,minWidth:90}}>
+            {years.length === 0 && <option>{new Date().getFullYear()}</option>}
+            {years.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </div>
+        <div style={{display:'flex',flexDirection:'column'}}>
+          <label htmlFor="report-month" style={{fontWeight:600,color:'#222',marginBottom:4,fontSize:15}}>Tháng</label>
+          <select id="report-month" value={selectedMonth} onChange={handleMonthChange} style={{padding:8,borderRadius:6,minWidth:90}}>
+            <option value="all">Tất cả</option>
+            {monthsInYear.map(m => <option key={m} value={m}>{`Tháng ${m}`}</option>)}
+          </select>
+        </div>
+        <div style={{display:'flex',flexDirection:'column'}}>
+          <label htmlFor="report-category" style={{fontWeight:600,color:'#222',marginBottom:4,fontSize:15}}>Danh mục</label>
+          <select id="report-category" value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} style={{padding:8,borderRadius:6,minWidth:120}}>
+            <option value="all">Tất cả</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.name}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
       </div>
       <div style={{marginTop:24}}>
         <h4 style={{marginBottom:12,fontWeight:700,fontSize:18, color:'#222'}}>Chi tiết giao dịch</h4>
@@ -144,7 +184,7 @@ function PieChart({ arcs }: { arcs: any[] }) {
   return (
     <svg width={220} height={220} viewBox="0 0 220 220">
       <circle cx={cx} cy={cy} r={radius} fill="#fbeeea" />
-      {arcs.map((arc, i) => {
+      {arcs.map(arc => {
         const startAngle = acc;
         const angle = arc.percent * 3.6;
         const endAngle = startAngle + angle;
@@ -160,15 +200,9 @@ function PieChart({ arcs }: { arcs: any[] }) {
           `A ${radius} ${radius} 0 ${largeArc} 1 ${end.x} ${end.y}`,
           'Z'
         ].join(' ');
-        // Tính vị trí text phần trăm
-        const midAngle = startAngle + angle / 2;
-        const textPos = polarToCartesian(cx, cy, radius * 0.6, midAngle);
         return (
           <g key={arc.category}>
             <path d={d} fill={arc.color} />
-            <text x={textPos.x} y={textPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="16" fontWeight="700" fill="#fff" style={{textShadow:'0 1px 4px #0008'}}>
-              {arc.percent > 0 ? `${arc.percent}%` : ''}
-            </text>
           </g>
         );
       })}
@@ -181,6 +215,19 @@ function polarToCartesian(cx:number, cy:number, r:number, angle:number) {
     x: cx + (r * Math.cos(rad)),
     y: cy + (r * Math.sin(rad))
   };
+}
+
+// Hàm format số tiền sang dạng k/tr
+function formatMoneyShort(amount: number): string {
+  if (amount >= 1_000_000) {
+    const tr = Math.floor(amount / 1_000_000);
+    const k = Math.floor((amount % 1_000_000) / 1000);
+    return k > 0 ? `${tr}tr${k}k` : `${tr}tr`;
+  }
+  if (amount >= 1000) {
+    return `${Math.floor(amount / 1000)}k`;
+  }
+  return amount.toString();
 }
 
 export default ReportView;
