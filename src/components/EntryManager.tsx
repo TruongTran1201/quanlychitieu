@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { MAIN_MENU_STYLE_REACT } from '../styleConfig'
+import { supabase } from '../supabaseClient'
 import EntryDetailModal from './EntryDetailModal'
 
 export interface Entry {
@@ -48,7 +49,13 @@ const EntryManager: React.FC<Props> = ({
   const [editDesc, setEditDesc] = useState('')
   const [editAmount, setEditAmount] = useState('')
   const [editDate, setEditDate] = useState('')
-  const [detailEntry, setDetailEntry] = useState<Entry|null>(null)
+  const [imageModalEntry, setImageModalEntry] = useState<Entry|null>(null);
+  const [imageFiles, setImageFiles] = useState<FileList|null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [entryImages, setEntryImages] = useState<{url:string}[]>([]);
+  const [detailEntry, setDetailEntry] = useState<Entry|null>(null);
+  const [detailImages, setDetailImages] = useState<{url:string}[]>([]);
+  const [saveImageNotice, setSaveImageNotice] = useState<string>('');
 
   const startEdit = (entry: Entry) => {
     setEditId(entry.id)
@@ -71,7 +78,27 @@ const EntryManager: React.FC<Props> = ({
     cancelEdit()
   }
 
+  // Hàm lấy ảnh đã upload cho entry
+  async function fetchEntryImages(entryId: number) {
+    const { data, error } = await supabase
+      .from('entry_images')
+      .select('url')
+      .eq('entry_id', entryId);
+    if (!error && data) setEntryImages(data);
+    else setEntryImages([]);
+  }
+
   const sortedEntries = [...entries].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  // Khi click vào 1 bản ghi, show popup và load ảnh
+  const handleShowDetail = async (entry: Entry) => {
+    setDetailEntry(entry);
+    const { data, error } = await supabase
+      .from('entry_images')
+      .select('url')
+      .eq('entry_id', entry.id);
+    setDetailImages(!error && data ? data : []);
+  };
 
   return (
     <div className="entry-manager" style={MAIN_MENU_STYLE_REACT}>
@@ -102,7 +129,7 @@ const EntryManager: React.FC<Props> = ({
             </thead>
             <tbody>
               {sortedEntries.map(entry => (
-                <tr key={entry.id} style={{borderBottom:'1px solid #f0f0f0', cursor:'pointer'}} onClick={() => setDetailEntry(entry)}>
+                <tr key={entry.id} style={{borderBottom:'1px solid #f0f0f0', cursor:'pointer'}} onClick={() => handleShowDetail(entry)}>
                   <td style={{padding:12, color:'#222'}}>{entry.category}</td>
                   <td style={{padding:12, color:'#222'}}>
                     {editId === entry.id ? (
@@ -126,19 +153,23 @@ const EntryManager: React.FC<Props> = ({
                         <button onClick={cancelEdit} style={{padding:'8px 16px',borderRadius:6,background:'#aaa',color:'#fff',border:'none',fontWeight:600}}>Hủy</button>
                       </>
                     ) : (
-                      <div style={{display:'flex',gap:8,alignItems:'center'}}>
-                        <button onClick={e => {e.stopPropagation(); startEdit(entry);}} title="Sửa" style={{background:'none',border:'none',padding:4,cursor:'pointer',borderRadius:4,transition:'background 0.2s'}}>
-                          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="2" y="14.5" width="16" height="3" rx="1.5" fill="#f1c40f"/>
-                            <path d="M14.85 3.15a1.5 1.5 0 0 1 2.12 2.12l-8.2 8.2-2.12.01.01-2.12 8.19-8.2z" fill="#f1c40f" stroke="#b7950b" strokeWidth="1.2"/>
-                          </svg>
-                        </button>
-                        <button onClick={e => {e.stopPropagation(); deleteEntry(entry.id);}} title="Xóa" style={{background:'none',border:'none',padding:4,cursor:'pointer',borderRadius:4,transition:'background 0.2s'}}>
-                          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="10" cy="10" r="9" fill="#e74c3c"/>
-                            <path d="M6.5 6.5l7 7M13.5 6.5l-7 7" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
-                          </svg>
-                        </button>
+                      <div style={{position:'relative'}}>
+                        <select
+                          style={{padding:'6px 28px 6px 10px',borderRadius:6,border:'1px solid #ccc',fontSize:15,background:'#fff',color:'#222',cursor:'pointer'}}
+                          defaultValue=""
+                          onClick={e => e.stopPropagation()} // Ngăn sự kiện click lan lên <tr>
+                          onChange={e => {
+                            if (e.target.value === 'add-image') setImageModalEntry(entry);
+                            if (e.target.value === 'edit') startEdit(entry);
+                            if (e.target.value === 'delete') deleteEntry(entry.id);
+                            e.target.value = '';
+                          }}
+                        >
+                          <option value="" disabled>Chọn thao tác</option>
+                          <option value="add-image">Thêm hình ảnh</option>
+                          <option value="edit">Sửa khoản chi</option>
+                          <option value="delete">Xóa khoản chi</option>
+                        </select>
                       </div>
                     )}
                   </td>
@@ -149,8 +180,47 @@ const EntryManager: React.FC<Props> = ({
           {entries.length === 0 && <div style={{padding:24,textAlign:'center',color:'#aaa'}}>Chưa có dữ liệu</div>}
         </div>
       )}
+      {saveImageNotice && (
+        <div style={{margin:'12px 0',color:'#2ecc40',fontWeight:600,textAlign:'center'}}>{saveImageNotice}</div>
+      )}
+      {imageModalEntry && (
+        <div style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',background:'rgba(0,0,0,0.25)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setImageModalEntry(null)}>
+          <div style={{background:'#fff',borderRadius:12,padding:32,minWidth:320,maxWidth:'90vw',boxShadow:'0 4px 32px #0002',color:'#222',position:'relative'}} onClick={e=>e.stopPropagation()}>
+            <button style={{position:'absolute',top:12,right:12,background:'none',border:'none',fontSize:22,color:'#e74c3c',cursor:'pointer'}} onClick={()=>setImageModalEntry(null)} title="Đóng">×</button>
+            <h3 style={{marginBottom:18,fontWeight:800,color:'#2ecc40',fontSize:20}}>Thêm hình ảnh cho khoản chi</h3>
+            <div style={{marginBottom:16}}>
+              <input type="file" multiple accept="image/*" onChange={e=>setImageFiles(e.target.files)} />
+            </div>
+            <button
+              style={{padding:'10px 18px',borderRadius:8,background:'#2ecc40',color:'#fff',border:'none',fontWeight:700,fontSize:16,minWidth:90}}
+              onClick={async () => {
+                if (!imageFiles || !imageModalEntry) return;
+                setUploading(true);
+                let success = true;
+                for (let i = 0; i < imageFiles.length; i++) {
+                  const file = imageFiles[i];
+                  const filePath = `entry_${imageModalEntry.id}/${Date.now()}_${file.name}`;
+                  const { error: uploadError } = await supabase.storage.from('entry-images').upload(filePath, file);
+                  if (!uploadError) {
+                    const { data: urlData } = supabase.storage.from('entry-images').getPublicUrl(filePath);
+                    await supabase.from('entry_images').insert({ entry_id: imageModalEntry.id, url: urlData.publicUrl });
+                  } else {
+                    success = false;
+                  }
+                }
+                setUploading(false);
+                setImageFiles(null);
+                setImageModalEntry(null);
+                setSaveImageNotice(success ? 'Lưu ảnh thành công!' : 'Có lỗi khi lưu một số ảnh!');
+                setTimeout(() => setSaveImageNotice(''), 2500);
+              }}
+              disabled={uploading || !imageFiles || imageFiles.length === 0}
+            >{uploading ? 'Đang tải...' : 'Lưu ảnh'}</button>
+          </div>
+        </div>
+      )}
       {detailEntry && (
-        <EntryDetailModal entry={detailEntry} onClose={() => setDetailEntry(null)} />
+        <EntryDetailModal entry={detailEntry} images={detailImages} onClose={() => setDetailEntry(null)} />
       )}
     </div>
   )

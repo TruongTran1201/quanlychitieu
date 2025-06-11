@@ -104,7 +104,6 @@ function App() {
     <div className="app" style={{ minHeight: '100vh', background: '#f6f8fa', fontFamily: 'Segoe UI,Roboto,sans-serif' }}>
       <div style={{ width: '100%', maxWidth: 900, minWidth: 0, margin: '0 auto', padding: '48px 8px', position: 'relative', boxSizing: 'border-box' }}>
         {/* User info top right */}
-        {/* User info top right */}
         <div className="user-info-bar">
           {auth.user && (
             <>

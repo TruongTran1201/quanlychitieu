@@ -13,21 +13,6 @@ interface Props {
   categories?: {id: number, name: string, user_id: string}[]
 }
 
-// Thêm Gauge chart
-function getCategoryStats(entries: any[]) {
-  const total = entries.reduce((sum, e) => sum + e.amount, 0)
-  const byCat: {[cat: string]: number} = {}
-  entries.forEach(e => {
-    byCat[e.category] = (byCat[e.category] || 0) + e.amount
-  })
-  const stats = Object.entries(byCat).map(([cat, amount]) => ({
-    category: cat,
-    amount,
-    percent: total > 0 ? Math.round(amount / total * 100) : 0
-  }))
-  return { total, stats }
-}
-
 const COLORS = [
   '#e74c3c', '#f1c40f', '#2ecc40', '#2980b9', '#9b59b6', '#16a085', '#e67e22', '#34495e', '#8e44ad', '#27ae60'
 ]
@@ -42,29 +27,19 @@ const ReportView: React.FC<Props> = ({
   monthsInYear,
   categories = []
 }) => {
-  // Thêm filter theo danh mục
   const [selectedCategory, setSelectedCategory] = React.useState<string>('all')
   const filteredEntries = selectedCategory === 'all'
     ? entries
     : entries.filter(e => e.category === selectedCategory)
-  const { stats } = getCategoryStats(filteredEntries)
-  // Tạo dữ liệu cho gauge chart
-  let offset = 0
-  const arcs = stats.map((s, i) => {
-    const start = offset
-    const end = offset + s.percent * 3.6 // 1% = 3.6 độ
-    offset = end
-    return { ...s, color: COLORS[i % COLORS.length], start, end }
-  })
-  // Sắp xếp entries theo ngày giảm dần (mới nhất lên đầu)
-  const sortedEntries = [...filteredEntries].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const totalAmount = filteredEntries.reduce((sum, e) => sum + (e.amount || 0), 0)
+  const totalEntries = filteredEntries.length;
+
   // Paging state for report table
   const [page, setPage] = React.useState(1);
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
-  const totalEntries = sortedEntries.length;
   const totalPages = Math.max(1, Math.ceil(totalEntries / itemsPerPage));
   React.useEffect(() => { setPage(1); }, [itemsPerPage, selectedCategory, selectedYear, selectedMonth]);
-  const pagedEntries = sortedEntries.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const pagedEntries = filteredEntries.slice((page - 1) * itemsPerPage, page * itemsPerPage);
   const [detailEntry, setDetailEntry] = React.useState<any|null>(null);
   return (
     <div className="report-view" style={MAIN_MENU_STYLE_REACT}>
@@ -90,23 +65,7 @@ const ReportView: React.FC<Props> = ({
       </div>
       <h2 style={{marginBottom:24,fontSize:26,fontWeight:800,color:'#2ecc40'}}>Báo cáo {selectedMonth === 'all' ? `năm ${selectedYear}` : `tháng ${selectedMonth}/${selectedYear}`}</h2>
       <div style={{marginBottom:16, fontSize:18, fontWeight:600, color:'#222'}}>
-        Tổng chi tiêu: {filteredEntries.reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}₫
-      </div>
-      <div style={{display:'flex',gap:32,marginBottom:32,alignItems:'center'}}>
-        <div style={{position:'relative',width:220,height:220}}>
-          <PieChart arcs={arcs} />
-        </div>
-        <div style={{flex:1}}>
-          <ul style={{listStyle:'none',padding:0,margin:0}}>
-            {arcs.map(arc => (
-              <li key={arc.category} style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
-                <span style={{display:'inline-block',width:18,height:18,borderRadius:4,background:arc.color}}></span>
-                <span style={{fontWeight:700}}>{arc.category}</span>
-                <span style={{color:'#888'}}>{formatAmountShort(arc.amount)}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        Tổng chi tiêu: {totalAmount.toLocaleString()}₫
       </div>
       <div style={{marginTop:24}}>
         <h4 style={{marginBottom:12,fontWeight:700,fontSize:18, color:'#222'}}>Chi tiết giao dịch</h4>
@@ -131,7 +90,7 @@ const ReportView: React.FC<Props> = ({
               ))}
             </tbody>
           </table>
-          {sortedEntries.length === 0 && <div style={{padding:24,textAlign:'center',color:'#aaa'}}>Không có giao dịch nào</div>}
+          {filteredEntries.length === 0 && <div style={{padding:24,textAlign:'center',color:'#aaa'}}>Không có giao dịch nào</div>}
         </div>
         {/* Paging controls for report table */}
         {totalEntries > 0 && (
@@ -204,20 +163,6 @@ function polarToCartesian(cx:number, cy:number, r:number, angle:number) {
     x: cx + (r * Math.cos(rad)),
     y: cy + (r * Math.sin(rad))
   };
-}
-
-// Định dạng số tiền: 850000 -> 850k, 2100000 -> 2tr100k
-function formatAmountShort(amount: number) {
-  if (amount >= 1_000_000) {
-    const tr = Math.floor(amount / 1_000_000);
-    const k = Math.round((amount % 1_000_000) / 1000);
-    if (k === 0) return `${tr}tr`;
-    return `${tr}tr${k}k`;
-  }
-  if (amount >= 1000) {
-    return `${Math.round(amount / 1000)}k`;
-  }
-  return amount.toString();
 }
 
 export default ReportView;
