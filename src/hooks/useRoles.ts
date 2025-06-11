@@ -4,7 +4,7 @@ import { supabase } from '../supabaseClient';
 export function useRoles(user: any, activeTab: string) {
   const [roleName, setRoleName] = useState<string>('');
   const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [rolesList, setRolesList] = useState<{id: string, name: string, description: string}[]>([]);
+  const [rolesList, setRolesList] = useState<{ id: string, name: string, description: string }[]>([]);
 
   useEffect(() => {
     (async () => {

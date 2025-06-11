@@ -64,7 +64,7 @@ function App() {
   useEffect(() => {
     // Đọc path khi load
     const path = window.location.pathname.replace(/^\//, '');
-    if (['entry','report','category','admin'].includes(path)) {
+    if (['entry', 'report', 'category', 'admin'].includes(path)) {
       setActiveTab(path as any);
     }
   }, []);
@@ -182,7 +182,7 @@ function App() {
             />
           )}
           {activeTab === 'report' && !hasRole('Report') && (
-            <div style={{color:'#e74c3c',textAlign:'center',margin:'32px 0',fontWeight:700,fontSize:18}}>Bạn không có quyền truy cập mục này.</div>
+            <div style={{ color: '#e74c3c', textAlign: 'center', margin: '32px 0', fontWeight: 700, fontSize: 18 }}>Bạn không có quyền truy cập mục này.</div>
           )}
           {activeTab === 'category' && hasRole('Category') && (
             <CategoryManager
@@ -201,7 +201,7 @@ function App() {
             />
           )}
           {activeTab === 'category' && !hasRole('Category') && (
-            <div style={{color:'#e74c3c',textAlign:'center',margin:'32px 0',fontWeight:700,fontSize:18}}>Bạn không có quyền truy cập mục này.</div>
+            <div style={{ color: '#e74c3c', textAlign: 'center', margin: '32px 0', fontWeight: 700, fontSize: 18 }}>Bạn không có quyền truy cập mục này.</div>
           )}
           {activeTab === 'admin' && hasRole('SuperAdmin') && (
             <AdminPanel
@@ -212,7 +212,7 @@ function App() {
             />
           )}
           {activeTab === 'admin' && !hasRole('SuperAdmin') && (
-            <div style={{color:'#e74c3c',textAlign:'center',margin:'32px 0',fontWeight:700,fontSize:18}}>Bạn không có quyền truy cập mục này.</div>
+            <div style={{ color: '#e74c3c', textAlign: 'center', margin: '32px 0', fontWeight: 700, fontSize: 18 }}>Bạn không có quyền truy cập mục này.</div>
           )}
         </div>
       </div>
