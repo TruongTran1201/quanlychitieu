@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { MAIN_MENU_STYLE_REACT } from '../styleConfig'
+import EntryDetailModal from './EntryDetailModal'
 
 export interface Entry {
   id: number
@@ -47,6 +48,7 @@ const EntryManager: React.FC<Props> = ({
   const [editDesc, setEditDesc] = useState('')
   const [editAmount, setEditAmount] = useState('')
   const [editDate, setEditDate] = useState('')
+  const [detailEntry, setDetailEntry] = useState<Entry|null>(null)
 
   const startEdit = (entry: Entry) => {
     setEditId(entry.id)
@@ -100,7 +102,7 @@ const EntryManager: React.FC<Props> = ({
             </thead>
             <tbody>
               {sortedEntries.map(entry => (
-                <tr key={entry.id} style={{borderBottom:'1px solid #f0f0f0'}}>
+                <tr key={entry.id} style={{borderBottom:'1px solid #f0f0f0', cursor:'pointer'}} onClick={() => setDetailEntry(entry)}>
                   <td style={{padding:12, color:'#222'}}>{entry.category}</td>
                   <td style={{padding:12, color:'#222'}}>
                     {editId === entry.id ? (
@@ -114,7 +116,6 @@ const EntryManager: React.FC<Props> = ({
                   </td>
                   <td style={{padding:12, color:'#222'}}>
                     {editId === entry.id ? (
-                      // Hiển thị ngày, không cho sửa
                       <input value={editDate.replace('T', ' ').slice(0, 16)} type="datetime-local" style={{width:180,padding:8,borderRadius:6,border:'1px solid #ccc'}} disabled />
                     ) : (entry.date.replace('T', ' ').slice(0, 16).replace(' ', 'T'))}
                   </td>
@@ -125,10 +126,20 @@ const EntryManager: React.FC<Props> = ({
                         <button onClick={cancelEdit} style={{padding:'8px 16px',borderRadius:6,background:'#aaa',color:'#fff',border:'none',fontWeight:600}}>Hủy</button>
                       </>
                     ) : (
-                      <>
-                        <button onClick={()=>startEdit(entry)} style={{padding:'8px 16px',borderRadius:6,background:'#3498db',color:'#fff',border:'none',fontWeight:600,marginRight:8}}>Sửa</button>
-                        <button onClick={()=>deleteEntry(entry.id)} style={{padding:'8px 16px',borderRadius:6,background:'#e74c3c',color:'#fff',border:'none',fontWeight:600}}>Xóa</button>
-                      </>
+                      <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                        <button onClick={e => {e.stopPropagation(); startEdit(entry);}} title="Sửa" style={{background:'none',border:'none',padding:4,cursor:'pointer',borderRadius:4,transition:'background 0.2s'}}>
+                          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="14.5" width="16" height="3" rx="1.5" fill="#f1c40f"/>
+                            <path d="M14.85 3.15a1.5 1.5 0 0 1 2.12 2.12l-8.2 8.2-2.12.01.01-2.12 8.19-8.2z" fill="#f1c40f" stroke="#b7950b" strokeWidth="1.2"/>
+                          </svg>
+                        </button>
+                        <button onClick={e => {e.stopPropagation(); deleteEntry(entry.id);}} title="Xóa" style={{background:'none',border:'none',padding:4,cursor:'pointer',borderRadius:4,transition:'background 0.2s'}}>
+                          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="10" cy="10" r="9" fill="#e74c3c"/>
+                            <path d="M6.5 6.5l7 7M13.5 6.5l-7 7" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -137,6 +148,9 @@ const EntryManager: React.FC<Props> = ({
           </table>
           {entries.length === 0 && <div style={{padding:24,textAlign:'center',color:'#aaa'}}>Chưa có dữ liệu</div>}
         </div>
+      )}
+      {detailEntry && (
+        <EntryDetailModal entry={detailEntry} onClose={() => setDetailEntry(null)} />
       )}
     </div>
   )

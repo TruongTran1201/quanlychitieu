@@ -1,5 +1,6 @@
 import React from 'react'
 import { MAIN_MENU_STYLE_REACT } from '../styleConfig'
+import EntryDetailModal from './EntryDetailModal'
 
 interface Props {
   entries: any[]
@@ -64,6 +65,7 @@ const ReportView: React.FC<Props> = ({
   const totalPages = Math.max(1, Math.ceil(totalEntries / itemsPerPage));
   React.useEffect(() => { setPage(1); }, [itemsPerPage, selectedCategory, selectedYear, selectedMonth]);
   const pagedEntries = sortedEntries.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const [detailEntry, setDetailEntry] = React.useState<any|null>(null);
   return (
     <div className="report-view" style={MAIN_MENU_STYLE_REACT}>
       <div style={{marginBottom:24,display:'flex',alignItems:'center',gap:16,flexWrap:'wrap',justifyContent:'center'}}>
@@ -92,21 +94,7 @@ const ReportView: React.FC<Props> = ({
       </div>
       <div style={{display:'flex',gap:32,marginBottom:32,alignItems:'center'}}>
         <div style={{position:'relative',width:220,height:220}}>
-          <svg width={220} height={220} viewBox="0 0 220 220">
-            <circle cx={110} cy={110} r={90} fill="#fbeeea" />
-            {arcs.map((arc) => (
-              arc.percent > 0 && (
-                <path
-                  key={arc.category}
-                  d={describeArc(110, 110, 90, arc.start, arc.end)}
-                  fill="none"
-                  stroke={arc.color}
-                  strokeWidth={22}
-                  strokeLinecap="round"
-                />
-              )
-            ))}
-          </svg>
+          <PieChart arcs={arcs} />
         </div>
         <div style={{flex:1}}>
           <ul style={{listStyle:'none',padding:0,margin:0}}>
@@ -114,8 +102,7 @@ const ReportView: React.FC<Props> = ({
               <li key={arc.category} style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
                 <span style={{display:'inline-block',width:18,height:18,borderRadius:4,background:arc.color}}></span>
                 <span style={{fontWeight:700}}>{arc.category}</span>
-                <span style={{color:'#888'}}>{arc.amount.toLocaleString()}₫</span>
-                <span style={{color:'#888'}}>{arc.percent}%</span>
+                <span style={{color:'#888'}}>{formatAmountShort(arc.amount)}</span>
               </li>
             ))}
           </ul>
@@ -135,7 +122,7 @@ const ReportView: React.FC<Props> = ({
             </thead>
             <tbody>
               {pagedEntries.map((entry: any) => (
-                <tr key={entry.id} style={{borderBottom:'1px solid #f0f0f0'}}>
+                <tr key={entry.id} style={{borderBottom:'1px solid #f0f0f0', cursor:'pointer'}} onClick={() => setDetailEntry(entry)}>
                   <td style={{padding:12, color:'#222'}}>{entry.category}</td>
                   <td style={{padding:12, color:'#222'}}>{entry.description}</td>
                   <td style={{padding:12, color:'#222'}}>{entry.amount.toLocaleString()}₫</td>
@@ -165,26 +152,72 @@ const ReportView: React.FC<Props> = ({
           </div>
         )}
       </div>
+      {detailEntry && (
+        <EntryDetailModal entry={detailEntry} onClose={() => setDetailEntry(null)} />
+      )}
     </div>
   )
 }
 
-// Hàm vẽ cung tròn SVG
-function describeArc(cx:number, cy:number, r:number, startAngle:number, endAngle:number) {
-  const start = polarToCartesian(cx, cy, r, endAngle)
-  const end = polarToCartesian(cx, cy, r, startAngle)
-  const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1'
-  return [
-    'M', start.x, start.y,
-    'A', r, r, 0, largeArcFlag, 0, end.x, end.y
-  ].join(' ')
+// Pie chart component
+function PieChart({ arcs }: { arcs: any[] }) {
+  const radius = 90;
+  const cx = 110, cy = 110;
+  let acc = 0;
+  return (
+    <svg width={220} height={220} viewBox="0 0 220 220">
+      <circle cx={cx} cy={cy} r={radius} fill="#fbeeea" />
+      {arcs.map((arc, i) => {
+        const startAngle = acc;
+        const angle = arc.percent * 3.6;
+        const endAngle = startAngle + angle;
+        acc = endAngle;
+        if (arc.percent === 0) return null;
+        // Pie slice path
+        const largeArc = angle > 180 ? 1 : 0;
+        const start = polarToCartesian(cx, cy, radius, startAngle);
+        const end = polarToCartesian(cx, cy, radius, endAngle);
+        const d = [
+          `M ${cx} ${cy}`,
+          `L ${start.x} ${start.y}`,
+          `A ${radius} ${radius} 0 ${largeArc} 1 ${end.x} ${end.y}`,
+          'Z'
+        ].join(' ');
+        // Tính vị trí text phần trăm
+        const midAngle = startAngle + angle / 2;
+        const textPos = polarToCartesian(cx, cy, radius * 0.6, midAngle);
+        return (
+          <g key={arc.category}>
+            <path d={d} fill={arc.color} />
+            <text x={textPos.x} y={textPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="16" fontWeight="700" fill="#fff" style={{textShadow:'0 1px 4px #0008'}}>
+              {arc.percent > 0 ? `${arc.percent}%` : ''}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
 }
 function polarToCartesian(cx:number, cy:number, r:number, angle:number) {
-  const rad = (angle-90) * Math.PI/180.0
+  const rad = (angle-90) * Math.PI/180.0;
   return {
     x: cx + (r * Math.cos(rad)),
     y: cy + (r * Math.sin(rad))
+  };
+}
+
+// Định dạng số tiền: 850000 -> 850k, 2100000 -> 2tr100k
+function formatAmountShort(amount: number) {
+  if (amount >= 1_000_000) {
+    const tr = Math.floor(amount / 1_000_000);
+    const k = Math.round((amount % 1_000_000) / 1000);
+    if (k === 0) return `${tr}tr`;
+    return `${tr}tr${k}k`;
   }
+  if (amount >= 1000) {
+    return `${Math.round(amount / 1000)}k`;
+  }
+  return amount.toString();
 }
 
 export default ReportView;
