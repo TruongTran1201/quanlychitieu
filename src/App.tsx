@@ -28,14 +28,12 @@ function App() {
 
   // Paging state
   const [page, setPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const itemsPerPage = 10;
   const filteredPagedEntries = [...entriesState.entries]
     .filter(e => (entryFilterCategory === 'all' || e.category === entryFilterCategory))
     .filter(e => (entryFilterMonth === 'all' || new Date(e.date).getMonth() + 1 === Number(entryFilterMonth)))
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice((page - 1) * itemsPerPage, page * itemsPerPage);
-  const filteredTotalEntries = entriesState.entries.filter(e => (entryFilterCategory === 'all' || e.category === entryFilterCategory)).filter(e => (entryFilterMonth === 'all' || new Date(e.date).getMonth() + 1 === Number(entryFilterMonth))).length;
-  const filteredTotalPages = Math.max(1, Math.ceil(filteredTotalEntries / itemsPerPage));
   useEffect(() => { setPage(1); }, [entryFilterCategory, entryFilterMonth, itemsPerPage]);
 
   // Các state cho báo cáo (ReportView)
