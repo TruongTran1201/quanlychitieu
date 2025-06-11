@@ -1,6 +1,7 @@
 import React from 'react'
 import { MAIN_MENU_STYLE_REACT } from '../styleConfig'
 import EntryDetailModal from './EntryDetailModal'
+import { supabase } from '../supabaseClient'
 
 interface Props {
   entries: any[]
@@ -41,6 +42,19 @@ const ReportView: React.FC<Props> = ({
   React.useEffect(() => { setPage(1); }, [itemsPerPage, selectedCategory, selectedYear, selectedMonth]);
   const pagedEntries = filteredEntries.slice((page - 1) * itemsPerPage, page * itemsPerPage);
   const [detailEntry, setDetailEntry] = React.useState<any|null>(null);
+  const [detailImages, setDetailImages] = React.useState<{url:string}[]>([]);
+
+  // Khi click vào 1 bản ghi, show popup và load ảnh
+  const handleShowDetail = async (entry: any) => {
+    setDetailEntry(entry);
+    // Lấy ảnh từ Supabase
+    const { data, error } = await supabase
+      .from('entry_images')
+      .select('url')
+      .eq('entry_id', entry.id);
+    setDetailImages(!error && data ? data : []);
+  };
+
   return (
     <div className="report-view" style={MAIN_MENU_STYLE_REACT}>
       <div style={{marginBottom:24,display:'flex',alignItems:'center',gap:16,flexWrap:'wrap',justifyContent:'center'}}>
@@ -81,7 +95,7 @@ const ReportView: React.FC<Props> = ({
             </thead>
             <tbody>
               {pagedEntries.map((entry: any) => (
-                <tr key={entry.id} style={{borderBottom:'1px solid #f0f0f0', cursor:'pointer'}} onClick={() => setDetailEntry(entry)}>
+                <tr key={entry.id} style={{borderBottom:'1px solid #f0f0f0', cursor:'pointer'}} onClick={() => handleShowDetail(entry)}>
                   <td style={{padding:12, color:'#222'}}>{entry.category}</td>
                   <td style={{padding:12, color:'#222'}}>{entry.description}</td>
                   <td style={{padding:12, color:'#222'}}>{entry.amount.toLocaleString()}₫</td>
@@ -112,7 +126,11 @@ const ReportView: React.FC<Props> = ({
         )}
       </div>
       {detailEntry && (
-        <EntryDetailModal entry={detailEntry} onClose={() => setDetailEntry(null)} />
+        <EntryDetailModal
+          entry={detailEntry}
+          images={detailImages}
+          onClose={() => { setDetailEntry(null); }}
+        />
       )}
     </div>
   )
