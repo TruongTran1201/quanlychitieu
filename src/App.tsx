@@ -62,6 +62,22 @@ function App() {
     return month === Number(selectedMonth);
   });
 
+  // Đồng bộ tab với path trên trình duyệt
+  useEffect(() => {
+    // Đọc path khi load
+    const path = window.location.pathname.replace(/^\//, '');
+    if (['entry','report','category','admin'].includes(path)) {
+      setActiveTab(path as any);
+    }
+  }, []);
+  useEffect(() => {
+    // Đổi path khi đổi tab
+    window.history.pushState({}, '', '/' + activeTab);
+  }, [activeTab]);
+
+  // Helper kiểm tra quyền
+  const hasRole = (role: string) => rolesState.roleName.split(',').includes(role) || rolesState.roleName === 'SuperAdmin';
+
   if (auth.showHome) {
     return (
       <div className="homepage" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#222' }}>
@@ -120,59 +136,42 @@ function App() {
             style={{ padding: 14, borderRadius: 8, border: 'none', fontSize: 18, background: '#fff', color: '#222', fontWeight: 600, boxShadow: '0 2px 8px #0001', outline: 'none', cursor: 'pointer', minWidth: 160 }}
           >
             <option value="entry">📝 Nhập chi tiêu</option>
-            <option value="report">📊 Báo cáo</option>
-            {rolesState.roleName === 'SuperAdmin' && (
+            {hasRole('Report') && (
+              <option value="report">📊 Báo cáo</option>
+            )}
+            {hasRole('SuperAdmin') && (
               <option value="admin">⚙️ Quản trị</option>
             )}
-            {(rolesState.roleName === 'SuperAdmin' || rolesState.roleName.includes('Category')) && (
+            {hasRole('Category') && (
               <option value="category">📁 Danh mục</option>
             )}
           </select>
         </div>
         <div style={{ width: '100%', maxWidth: 600, margin: '0 auto' }}>
           {activeTab === 'entry' && (
-            <>
-              {/* Filter controls */}
-              <EntryManager
-                entries={filteredPagedEntries}
-                loading={entriesState.loading}
-                addEntry={entriesState.addEntry}
-                deleteEntry={entriesState.deleteEntry}
-                category={entriesState.category}
-                setCategory={entriesState.setCategory}
-                description={entriesState.description}
-                setDescription={entriesState.setDescription}
-                amount={entriesState.amount}
-                setAmount={entriesState.setAmount}
-                date={entriesState.date}
-                setDate={entriesState.setDate}
-                categories={categoriesState.categories}
-                descInputRef={entriesState.descInputRef as React.RefObject<HTMLInputElement>}
-                entryFilterCategory={entryFilterCategory}
-                setEntryFilterCategory={setEntryFilterCategory}
-                entryFilterMonth={entryFilterMonth}
-                setEntryFilterMonth={setEntryFilterMonth}
-                entryMonths={entryMonths}
-              />
-              {/* Paging controls */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, margin: '18px 0' }}>
-                <button onClick={() => setPage(1)} disabled={page === 1} style={{ padding: '6px 12px', borderRadius: 6 }}>«</button>
-                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: '6px 12px', borderRadius: 6 }}>‹</button>
-                <span style={{ fontWeight: 600 }}>Trang</span>
-                <select value={page} onChange={e => setPage(Number(e.target.value))} style={{ padding: '6px 10px', borderRadius: 6 }}>
-                  {Array.from({ length: filteredTotalPages }, (_, i) => i + 1).map(p => (<option key={p} value={p}>{p}</option>))}
-                </select>
-                <span style={{ fontWeight: 600 }}>/ {filteredTotalPages}</span>
-                <button onClick={() => setPage(p => Math.min(filteredTotalPages, p + 1))} disabled={page === filteredTotalPages} style={{ padding: '6px 12px', borderRadius: 6 }}>›</button>
-                <button onClick={() => setPage(filteredTotalPages)} disabled={page === filteredTotalPages} style={{ padding: '6px 12px', borderRadius: 6 }}>»</button>
-                <span style={{ marginLeft: 16 }}>Hiển thị</span>
-                <select value={itemsPerPage} onChange={e => setItemsPerPage(Number(e.target.value))} style={{ padding: '6px 10px', borderRadius: 6 }}>
-                  {[5, 10, 20, 50, 100].map(n => (<option key={n} value={n}>{n}/trang</option>))}
-                </select>
-              </div>
-            </>
+            <EntryManager
+              entries={filteredPagedEntries}
+              loading={entriesState.loading}
+              addEntry={entriesState.addEntry}
+              deleteEntry={entriesState.deleteEntry}
+              category={entriesState.category}
+              setCategory={entriesState.setCategory}
+              description={entriesState.description}
+              setDescription={entriesState.setDescription}
+              amount={entriesState.amount}
+              setAmount={entriesState.setAmount}
+              date={entriesState.date}
+              setDate={entriesState.setDate}
+              categories={categoriesState.categories}
+              descInputRef={entriesState.descInputRef as React.RefObject<HTMLInputElement>}
+              entryFilterCategory={entryFilterCategory}
+              setEntryFilterCategory={setEntryFilterCategory}
+              entryFilterMonth={entryFilterMonth}
+              setEntryFilterMonth={setEntryFilterMonth}
+              entryMonths={entryMonths}
+            />
           )}
-          {activeTab === 'report' && (
+          {activeTab === 'report' && hasRole('Report') && (
             <ReportView
               entries={[...filteredEntries].sort((a, b) => b.date.localeCompare(a.date))}
               selectedYear={selectedYear}
@@ -184,36 +183,38 @@ function App() {
               categories={categoriesState.categories}
             />
           )}
-          {activeTab === 'category' && (rolesState.roleName === 'SuperAdmin' || rolesState.roleName.includes('Category')) && (
-            <>
-              {categoriesState.categoryNotice && (
-                <div style={{ marginBottom: 12, color: categoriesState.categoryNotice.includes('thành công') ? '#2ecc40' : '#e74c3c', fontWeight: 600 }}>
-                  {categoriesState.categoryNotice}
-                </div>
-              )}
-              <CategoryManager
-                categories={categoriesState.categories}
-                addCategory={categoriesState.addCategory}
-                deleteCategory={categoriesState.deleteCategory}
-                catName={categoriesState.catName}
-                setCatName={categoriesState.setCatName}
-                catEditId={categoriesState.catEditId}
-                catEditName={categoriesState.catEditName}
-                setCatEditName={categoriesState.setCatEditName}
-                startEditCategory={categoriesState.startEditCategory}
-                saveEditCategory={categoriesState.saveEditCategory}
-                cancelEditCategory={categoriesState.cancelEditCategory}
-                catInputRef={categoriesState.catInputRef as React.RefObject<HTMLInputElement>}
-              />
-            </>
+          {activeTab === 'report' && !hasRole('Report') && (
+            <div style={{color:'#e74c3c',textAlign:'center',margin:'32px 0',fontWeight:700,fontSize:18}}>Bạn không có quyền truy cập mục này.</div>
           )}
-          {activeTab === 'admin' && rolesState.roleName === 'SuperAdmin' && (
+          {activeTab === 'category' && hasRole('Category') && (
+            <CategoryManager
+              categories={categoriesState.categories}
+              addCategory={categoriesState.addCategory}
+              deleteCategory={categoriesState.deleteCategory}
+              catName={categoriesState.catName}
+              setCatName={categoriesState.setCatName}
+              catEditId={categoriesState.catEditId}
+              catEditName={categoriesState.catEditName}
+              setCatEditName={categoriesState.setCatEditName}
+              startEditCategory={categoriesState.startEditCategory}
+              saveEditCategory={categoriesState.saveEditCategory}
+              cancelEditCategory={categoriesState.cancelEditCategory}
+              catInputRef={categoriesState.catInputRef as React.RefObject<HTMLInputElement>}
+            />
+          )}
+          {activeTab === 'category' && !hasRole('Category') && (
+            <div style={{color:'#e74c3c',textAlign:'center',margin:'32px 0',fontWeight:700,fontSize:18}}>Bạn không có quyền truy cập mục này.</div>
+          )}
+          {activeTab === 'admin' && hasRole('SuperAdmin') && (
             <AdminPanel
               allUsers={rolesState.allUsers}
               rolesList={rolesState.rolesList}
               deleteRoleFromUser={rolesState.deleteRoleFromUser}
               addRoleToUser={rolesState.addRoleToUser}
             />
+          )}
+          {activeTab === 'admin' && !hasRole('SuperAdmin') && (
+            <div style={{color:'#e74c3c',textAlign:'center',margin:'32px 0',fontWeight:700,fontSize:18}}>Bạn không có quyền truy cập mục này.</div>
           )}
         </div>
       </div>

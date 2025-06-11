@@ -57,7 +57,7 @@ export function useRoles(user: any, activeTab: string) {
         setRoleName('');
       }
     })();
-  }, [user]);
+  }, [user, activeTab]);
 
   const addRoleToUser = async (userId: string, roleId: string) => {
     if (!user) return;
