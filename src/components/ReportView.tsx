@@ -11,7 +11,7 @@ interface Props {
   setSelectedMonth: (v: string) => void
   years: number[]
   monthsInYear: number[]
-  categories?: {id: number, name: string, user_id: string}[]
+  categories?: {id: number, name: string, group: string, user_id: string}[]
 }
 
 const COLORS = [
@@ -28,10 +28,14 @@ const ReportView: React.FC<Props> = ({
   monthsInYear,
   categories = []
 }) => {
-  const [selectedCategory, setSelectedCategory] = React.useState<string>('all')
-  const filteredEntries = selectedCategory === 'all'
+  const [selectedGroup, setSelectedGroup] = React.useState<string>('all')
+  const groupList = Array.from(new Set(categories.map(c => c.group))).filter(Boolean)
+  const filteredEntries = selectedGroup === 'all'
     ? entries
-    : entries.filter(e => e.category === selectedCategory)
+    : entries.filter(e => {
+        const cat = categories.find(c => c.name === e.category)
+        return cat && cat.group === selectedGroup
+      })
   const totalAmount = filteredEntries.reduce((sum, e) => sum + (e.amount || 0), 0)
   const totalEntries = filteredEntries.length;
 
@@ -39,7 +43,7 @@ const ReportView: React.FC<Props> = ({
   const [page, setPage] = React.useState(1);
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
   const totalPages = Math.max(1, Math.ceil(totalEntries / itemsPerPage));
-  React.useEffect(() => { setPage(1); }, [itemsPerPage, selectedCategory, selectedYear, selectedMonth]);
+  React.useEffect(() => { setPage(1); }, [itemsPerPage, selectedGroup, selectedYear, selectedMonth]);
   const pagedEntries = filteredEntries.slice((page - 1) * itemsPerPage, page * itemsPerPage);
   const [detailEntry, setDetailEntry] = React.useState<any|null>(null);
   const [detailImages, setDetailImages] = React.useState<{url:string}[]>([]);
@@ -56,13 +60,15 @@ const ReportView: React.FC<Props> = ({
   };
 
   // Pie chart data: tổng chi tiêu theo từng danh mục
-  const categorySums = filteredEntries.reduce((acc: Record<string, number>, e) => {
-    acc[e.category] = (acc[e.category] || 0) + (e.amount || 0);
-    return acc;
+  const groupSums = filteredEntries.reduce((acc: Record<string, number>, e) => {
+    const cat = categories.find(c => c.name === e.category)
+    const group = cat?.group || 'Khác'
+    acc[group] = (acc[group] || 0) + (e.amount || 0)
+    return acc
   }, {});
-  const sumTotal = Object.values(categorySums).reduce((a, b) => a + b, 0);
-  const arcs = Object.entries(categorySums).map(([category, amount], i) => ({
-    category,
+  const sumTotal = Object.values(groupSums).reduce((a, b) => a + b, 0);
+  const arcs = Object.entries(groupSums).map(([group, amount], i) => ({
+    category: group,
     value: amount,
     percent: sumTotal ? Math.round((amount / sumTotal) * 100) : 0,
     color: COLORS[i % COLORS.length]
@@ -81,12 +87,12 @@ const ReportView: React.FC<Props> = ({
           <PieChart arcs={arcs} />
           <div>
             {arcs.map(arc => (
-              <div key={arc.category} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+              <div key={arc.category} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6,flexWrap:'wrap'}}>
                 <span style={{minWidth:38,height:24,borderRadius:6,background:arc.color,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:700,fontSize:15,position:'relative',padding:'0 8px'}}>
                   {arc.percent > 0 ? arc.percent + '%' : ''}
                 </span>
-                <span style={{fontWeight:600,color:'#222'}}>{arc.category}</span>
-                <span style={{color:'#888',marginLeft:8}}>{formatMoneyShort(arc.value)}</span>
+                <span style={{fontWeight:600,color:'#222',whiteSpace:'normal',wordBreak:'break-word',maxWidth:'none'}}>{arc.category}</span>
+                <span style={{color:'#888',marginLeft:8,whiteSpace:'normal',wordBreak:'break-word',maxWidth:'none'}}>{formatMoneyShort(arc.value)}</span>
               </div>
             ))}
           </div>
@@ -112,11 +118,11 @@ const ReportView: React.FC<Props> = ({
           </select>
         </div>
         <div style={{display:'flex',flexDirection:'column'}}>
-          <label htmlFor="report-category" style={{fontWeight:600,color:'#222',marginBottom:4,fontSize:15}}>Danh mục</label>
-          <select id="report-category" value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} style={{padding:8,borderRadius:6,minWidth:120}}>
+          <label htmlFor="report-group" style={{fontWeight:600,color:'#222',marginBottom:4,fontSize:15}}>Nhóm</label>
+          <select id="report-group" value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)} style={{padding:8,borderRadius:6,minWidth:120}}>
             <option value="all">Tất cả</option>
-            {categories.map(cat => (
-              <option key={cat.id} value={cat.name}>{cat.name}</option>
+            {groupList.map(group => (
+              <option key={group} value={group}>{group}</option>
             ))}
           </select>
         </div>

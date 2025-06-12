@@ -2,10 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 
 export function useCategories(user: any, category: string, setCategory: (v: string) => void) {
-  const [categories, setCategories] = useState<{id: number, name: string, user_id: string}[]>([]);
+  // Thêm group vào type
+  const [categories, setCategories] = useState<{id: number, name: string, group: string, user_id: string}[]>([]);
   const [catName, setCatName] = useState('');
+  const [catGroup, setCatGroup] = useState('');
   const [catEditId, setCatEditId] = useState<number|null>(null);
   const [catEditName, setCatEditName] = useState('');
+  const [catEditGroup, setCatEditGroup] = useState('');
   const [categoryNotice, setCategoryNotice] = useState('');
   const catInputRef = useRef<HTMLInputElement>(null);
 
@@ -35,11 +38,12 @@ export function useCategories(user: any, category: string, setCategory: (v: stri
     setCategoryNotice('');
     const { data, error } = await supabase
       .from('categories')
-      .insert([{ name: catName.trim(), user_id: user.id }])
+      .insert([{ name: catName.trim(), group: catGroup.trim(), user_id: user.id }])
       .select();
     if (!error && data && data[0]) {
       setCategories([...categories, data[0]]);
       setCatName('');
+      setCatGroup('');
       setCategoryNotice('Thêm danh mục thành công!');
       if (catInputRef.current) catInputRef.current.focus();
     } else {
@@ -64,33 +68,46 @@ export function useCategories(user: any, category: string, setCategory: (v: stri
     }
   };
 
-  const startEditCategory = (id: number, name: string) => {
+  const startEditCategory = (id: number, name: string, group: string) => {
     setCatEditId(id);
     setCatEditName(name);
+    setCatEditGroup(group);
   };
   const saveEditCategory = async () => {
     if (!catEditName.trim() || !user || catEditId === null) return;
     const { data, error } = await supabase
       .from('categories')
-      .update({ name: catEditName.trim() })
+      .update({ name: catEditName.trim(), group: catEditGroup.trim() })
       .eq('id', catEditId)
       .eq('user_id', user.id)
       .select();
     if (!error && data && data[0]) {
       setCategories(categories.map(c => c.id === catEditId ? data[0] : c));
-      if (category === categories.find(c => c.id === catEditId)?.name) {
-        setCategory(data[0].name);
-      }
       setCatEditId(null);
       setCatEditName('');
+      setCatEditGroup('');
+      setCategoryNotice('Cập nhật danh mục thành công!');
+    } else {
+      setCategoryNotice('Có lỗi xảy ra, vui lòng thử lại!');
     }
-  };
-  const cancelEditCategory = () => {
-    setCatEditId(null);
-    setCatEditName('');
   };
 
   return {
-    categories, setCategories, catName, setCatName, catEditId, catEditName, setCatEditName, startEditCategory, saveEditCategory, cancelEditCategory, addCategory, deleteCategory, categoryNotice, setCategoryNotice, catInputRef
+    categories,
+    catName,
+    setCatName,
+    catGroup,
+    setCatGroup,
+    catEditId,
+    setCatEditId,
+    catEditName,
+    setCatEditName,
+    catEditGroup,
+    setCatEditGroup,
+    categoryNotice,
+    addCategory,
+    deleteCategory,
+    startEditCategory,
+    saveEditCategory,
   };
 }

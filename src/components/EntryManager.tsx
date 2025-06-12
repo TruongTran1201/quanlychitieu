@@ -67,6 +67,23 @@ const EntryManager: React.FC<Props> = ({
   const [detailEntry, setDetailEntry] = useState<Entry|null>(null);
   const [detailImages, setDetailImages] = useState<{url:string}[]>([]);
   const [saveImageNotice, setSaveImageNotice] = useState<string>('');
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
+  // Filter entries theo category và month
+  const filteredEntries = entries.filter(e => {
+    const matchCategory = entryFilterCategory === 'all' || e.category === entryFilterCategory;
+    const matchMonth = entryFilterMonth === 'all' || (new Date(e.date).getMonth() + 1) === Number(entryFilterMonth);
+    return matchCategory && matchMonth;
+  });
+
+  const totalEntries = filteredEntries.length;
+  const totalPages = Math.max(1, Math.ceil(totalEntries / itemsPerPage));
+
+  const sortedEntries = [...filteredEntries].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const pagedEntries = sortedEntries.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+
+  React.useEffect(() => { setPage(1); }, [itemsPerPage, entryFilterCategory, entryFilterMonth]);
 
   const startEdit = (entry: Entry) => {
     setEditId(entry.id)
@@ -90,8 +107,6 @@ const EntryManager: React.FC<Props> = ({
     }
     cancelEdit()
   }
-
-  const sortedEntries = [...entries].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // Khi click vào 1 bản ghi, show popup và load ảnh
   const handleShowDetail = async (entry: Entry) => {
@@ -153,7 +168,7 @@ const EntryManager: React.FC<Props> = ({
               </tr>
             </thead>
             <tbody>
-              {sortedEntries.map(entry => (
+              {pagedEntries.map(entry => (
                 <tr
                   key={entry.id}
                   style={{borderBottom:'1px solid #f0f0f0', cursor:'pointer'}}
@@ -216,6 +231,24 @@ const EntryManager: React.FC<Props> = ({
             </tbody>
           </table>
           {entries.length === 0 && <div style={{padding:24,textAlign:'center',color:'#aaa'}}>Chưa có dữ liệu</div>}
+          {/* Paging controls for entry table */}
+          {totalEntries > 0 && (
+            <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,margin:'18px 0'}}>
+              <button onClick={()=>setPage(1)} disabled={page===1} style={{padding:'6px 12px',borderRadius:6}}>&laquo;</button>
+              <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1} style={{padding:'6px 12px',borderRadius:6}}>&lsaquo;</button>
+              <span style={{fontWeight:600}}>Trang</span>
+              <select value={page} onChange={e=>setPage(Number(e.target.value))} style={{padding:'6px 10px',borderRadius:6}}>
+                {Array.from({length: totalPages}, (_,i)=>i+1).map(p=>(<option key={p} value={p}>{p}</option>))}
+              </select>
+              <span style={{fontWeight:600}}>/ {totalPages}</span>
+              <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page===totalPages} style={{padding:'6px 12px',borderRadius:6}}>&rsaquo;</button>
+              <button onClick={()=>setPage(totalPages)} disabled={page===totalPages} style={{padding:'6px 12px',borderRadius:6}}>&raquo;</button>
+              <span style={{marginLeft:16}}>Hiển thị</span>
+              <select value={itemsPerPage} onChange={e=>setItemsPerPage(Number(e.target.value))} style={{padding:'6px 10px',borderRadius:6}}>
+                {[5,10,20,50,100].map(n=>(<option key={n} value={n}>{n}/trang</option>))}
+              </select>
+            </div>
+          )}
         </div>
       )}
       {saveImageNotice && (

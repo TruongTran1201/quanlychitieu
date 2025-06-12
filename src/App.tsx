@@ -26,16 +26,6 @@ function App() {
   const [entryFilterMonth, setEntryFilterMonth] = useState<string>('all');
   const entryMonths = Array.from(new Set(entriesState.entries.map(e => new Date(e.date).getMonth() + 1))).sort((a, b) => a - b);
 
-  // Paging state
-  const [page, setPage] = useState(1);
-  const itemsPerPage = 10;
-  const filteredPagedEntries = [...entriesState.entries]
-    .filter(e => (entryFilterCategory === 'all' || e.category === entryFilterCategory))
-    .filter(e => (entryFilterMonth === 'all' || new Date(e.date).getMonth() + 1 === Number(entryFilterMonth)))
-    .sort((a, b) => b.date.localeCompare(a.date))
-    .slice((page - 1) * itemsPerPage, page * itemsPerPage);
-  useEffect(() => { setPage(1); }, [entryFilterCategory, entryFilterMonth, itemsPerPage]);
-
   // Các state cho báo cáo (ReportView)
   const years = Array.from(new Set(entriesState.entries.map(e => new Date(e.date).getFullYear()))).sort((a, b) => b - a);
   const [selectedYear, setSelectedYear] = useState(() => years[0] || new Date().getFullYear());
@@ -148,7 +138,7 @@ function App() {
         <div style={{ width: '100%', maxWidth: 600, margin: '0 auto' }}>
           {activeTab === 'entry' && (
             <EntryManager
-              entries={filteredPagedEntries}
+              entries={filteredEntries} // Sửa lại: truyền toàn bộ danh sách đã lọc, không slice ở ngoài
               loading={entriesState.loading}
               addEntry={entriesState.addEntry}
               deleteEntry={entriesState.deleteEntry}
@@ -191,13 +181,20 @@ function App() {
               deleteCategory={categoriesState.deleteCategory}
               catName={categoriesState.catName}
               setCatName={categoriesState.setCatName}
+              catGroup={categoriesState.catGroup}
+              setCatGroup={categoriesState.setCatGroup}
               catEditId={categoriesState.catEditId}
               catEditName={categoriesState.catEditName}
               setCatEditName={categoriesState.setCatEditName}
+              catEditGroup={categoriesState.catEditGroup}
+              setCatEditGroup={categoriesState.setCatEditGroup}
               startEditCategory={categoriesState.startEditCategory}
               saveEditCategory={categoriesState.saveEditCategory}
-              cancelEditCategory={categoriesState.cancelEditCategory}
-              catInputRef={categoriesState.catInputRef as React.RefObject<HTMLInputElement>}
+              cancelEditCategory={() => {
+                categoriesState.setCatEditId(null);
+                categoriesState.setCatEditName('');
+                categoriesState.setCatEditGroup('');
+              }}
             />
           )}
           {activeTab === 'category' && !hasRole('Category') && (
