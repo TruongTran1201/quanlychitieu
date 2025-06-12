@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { MAIN_MENU_STYLE_REACT } from '../styleConfig'
 import { supabase } from '../supabaseClient'
 import EntryDetailModal from './EntryDetailModal'
-import EntryFilterBar from './EntryFilterBar'
 
 export interface Entry {
   id: number
@@ -52,9 +51,7 @@ const EntryManager: React.FC<Props> = ({
   descInputRef,
   entryFilterCategory,
   setEntryFilterCategory,
-  entryFilterMonth,
-  setEntryFilterMonth,
-  entryMonths
+  entryFilterMonth
 }) => {
   const [editId, setEditId] = useState<number|null>(null)
   const [editDesc, setEditDesc] = useState('')
@@ -69,12 +66,18 @@ const EntryManager: React.FC<Props> = ({
   const [saveImageNotice, setSaveImageNotice] = useState<string>('');
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [filterMonthYear, setFilterMonthYear] = useState('all');
   
   // Filter entries theo category và month
   const filteredEntries = entries.filter(e => {
     const matchCategory = entryFilterCategory === 'all' || e.category === entryFilterCategory;
-    const matchMonth = entryFilterMonth === 'all' || (new Date(e.date).getMonth() + 1) === Number(entryFilterMonth);
-    return matchCategory && matchMonth;
+    let matchMonthYear = true;
+    if (filterMonthYear !== 'all') {
+      const d = new Date(e.date);
+      const [month, year] = filterMonthYear.split('/');
+      matchMonthYear = (d.getMonth() + 1) === Number(month) && d.getFullYear() === Number(year);
+    }
+    return matchCategory && matchMonthYear;
   });
 
   const totalEntries = filteredEntries.length;
@@ -132,6 +135,27 @@ const EntryManager: React.FC<Props> = ({
     }
   }, [editId]);
 
+  const monthYearOptions = React.useMemo(() => {
+    const options = [{ value: 'all', label: 'Tất cả' }];
+    const allDates = entries.map(e => new Date(e.date));
+    const uniqueMonthYears = Array.from(
+      new Set(allDates.map(d => `${d.getMonth() + 1}/${d.getFullYear()}`))
+    );
+    uniqueMonthYears.sort((a, b) => {
+      const [ma, ya] = a.split('/').map(Number);
+      const [mb, yb] = b.split('/').map(Number);
+      return yb !== ya ? yb - ya : mb - ma;
+    });
+    uniqueMonthYears.forEach(my => {
+      const [month, year] = my.split('/');
+      options.push({
+        value: `${month}/${year}`,
+        label: `Tháng ${month.padStart(2, '0')}/${year}`
+      });
+    });
+    return options;
+  }, [entries]);
+
   return (
     <div className="entry-manager" style={MAIN_MENU_STYLE_REACT}>
       <h3 style={{marginBottom:24,fontSize:24,fontWeight:800,color:'#2ecc40',textAlign:'center'}}>Nhập khoản chi</h3>
@@ -147,14 +171,46 @@ const EntryManager: React.FC<Props> = ({
         <input value={date} onChange={e=>setDate(e.target.value)} type="datetime-local" style={{width:180,minWidth:120,padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff'}} />
         <button type="submit" style={{padding:'12px 18px',borderRadius:8,background:'#2ecc40',color:'#fff',border:'none',fontWeight:700,fontSize:16,minWidth:90}}>Thêm</button>
       </form>
-      <EntryFilterBar
-        categories={categories.map(({id, name}) => ({id: id.toString(), name}))}
-        entryMonths={entryMonths}
-        entryFilterCategory={entryFilterCategory}
-        setEntryFilterCategory={setEntryFilterCategory}
-        entryFilterMonth={entryFilterMonth}
-        setEntryFilterMonth={setEntryFilterMonth}
-      />
+      <div
+        style={{
+          display: 'flex',
+          gap: 24,
+          alignItems: 'flex-end',
+          marginBottom: 18,
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 140 }}>
+          <label style={{ fontWeight: 600, color: '#222', marginBottom: 4 }}>Danh mục</label>
+          <select
+            value={entryFilterCategory}
+            onChange={e => setEntryFilterCategory(e.target.value)}
+            style={{ padding: 8, borderRadius: 6, minWidth: 120 }}
+          >
+            <option value="all">Tất cả</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.name}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 140 }}>
+          <label style={{ fontWeight: 600, color: '#222', marginBottom: 4 }}>Tháng/Năm</label>
+          <select
+            value={filterMonthYear}
+            onChange={e => setFilterMonthYear(e.target.value)}
+            style={{ padding: 8, borderRadius: 6, minWidth: 120 }}
+          >
+            {monthYearOptions.map(opt => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
       {loading ? <div>Đang tải...</div> : (
         <div style={{overflowX:'auto'}}>
           <table id="entry-table" style={{width:'100%',borderCollapse:'collapse',background:'#fafbfc',borderRadius:8,overflow:'hidden',boxShadow:'0 1px 8px #0001', color:'#222', minWidth:480}}>

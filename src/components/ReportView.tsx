@@ -74,9 +74,19 @@ const ReportView: React.FC<Props> = ({
     color: COLORS[i % COLORS.length]
   }));
 
-  // FilterBar style đồng bộ với EntryFilterBar
-  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => setSelectedYear(Number(e.target.value));
-  const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => setSelectedMonth(e.target.value);
+  // Tạo danh sách các lựa chọn tháng/năm
+  const monthYearOptions = React.useMemo(() => {
+    const options = [{ value: 'all', label: 'Tất cả' }];
+    years.forEach(year => {
+      monthsInYear.forEach(month => {
+        options.push({
+          value: `${month}/${year}`,
+          label: `Tháng ${month < 10 ? '0'+month : month}/${year}`
+        });
+      });
+    });
+    return options;
+  }, [years, monthsInYear]);
 
   return (
     <div className="report-view" style={MAIN_MENU_STYLE_REACT}>
@@ -104,17 +114,26 @@ const ReportView: React.FC<Props> = ({
       {/* FilterBar style đồng bộ EntryFilterBar */}
       <div style={{marginBottom:24,display:'flex',gap:16,alignItems:'center',flexWrap:'wrap',justifyContent:'center'}}>
         <div style={{display:'flex',flexDirection:'column'}}>
-          <label htmlFor="report-year" style={{fontWeight:600,color:'#222',marginBottom:4,fontSize:15}}>Năm</label>
-          <select id="report-year" value={selectedYear} onChange={handleYearChange} style={{padding:8,borderRadius:6,minWidth:90}}>
-            {years.length === 0 && <option>{new Date().getFullYear()}</option>}
-            {years.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        </div>
-        <div style={{display:'flex',flexDirection:'column'}}>
-          <label htmlFor="report-month" style={{fontWeight:600,color:'#222',marginBottom:4,fontSize:15}}>Tháng</label>
-          <select id="report-month" value={selectedMonth} onChange={handleMonthChange} style={{padding:8,borderRadius:6,minWidth:90}}>
-            <option value="all">Tất cả</option>
-            {monthsInYear.map(m => <option key={m} value={m}>{`Tháng ${m}`}</option>)}
+          <label htmlFor="report-monthyear" style={{fontWeight:600,color:'#222',marginBottom:4,fontSize:15}}>Tháng/Năm</label>
+          <select
+            id="report-monthyear"
+            value={selectedMonth === 'all' ? 'all' : `${selectedMonth}/${selectedYear}`}
+            onChange={e => {
+              const val = e.target.value;
+              if (val === 'all') {
+                setSelectedMonth('all');
+                setSelectedYear(years[0]);
+              } else {
+                const [month, year] = val.split('/');
+                setSelectedMonth(month);
+                setSelectedYear(Number(year));
+              }
+            }}
+            style={{padding:8,borderRadius:6,minWidth:120}}
+          >
+            {monthYearOptions.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
           </select>
         </div>
         <div style={{display:'flex',flexDirection:'column'}}>
