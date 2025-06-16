@@ -157,37 +157,32 @@ const EntryManager: React.FC<Props> = ({
   }, [entries]);
 
   return (
-    <div className="entry-manager" style={MAIN_MENU_STYLE_REACT}>
-      <h3 style={{marginBottom:24,fontSize:24,fontWeight:800,color:'#2ecc40',textAlign:'center'}}>Nhập khoản chi</h3>
-      <form onSubmit={addEntry} style={{display:'flex',gap:12,marginBottom:24,flexWrap:'wrap',alignItems:'center'}}>
-        <select value={category} onChange={e=>setCategory(e.target.value)} style={{flex:1,minWidth:120,padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff'}}>
+    <div className="entry-manager" style={{
+      ...MAIN_MENU_STYLE_REACT,
+      maxWidth: 480,
+      margin: '0 auto',
+      padding: '12px 8px 32px 8px',
+      boxSizing: 'border-box',
+      minHeight: '100vh',
+      width: '100vw',
+    }}>
+      <h3 style={{marginBottom:24,fontSize:22,fontWeight:800,color:'#2ecc40',textAlign:'center'}}>Nhập khoản chi</h3>
+      <form onSubmit={addEntry} style={{display:'flex',gap:8,marginBottom:18,flexWrap:'wrap',alignItems:'center',width:'100%'}}>
+        <select value={category} onChange={e=>setCategory(e.target.value)} style={{flex:1,minWidth:120,padding:10,borderRadius:8,border:'1px solid #ccc',fontSize:15,color:'#222',background:'#fff',width:'100%'}}>
           {categories.length === 0 && <option value="">Chưa có danh mục</option>}
           {categories.map(cat => (
             <option key={cat.id} value={cat.name}>{cat.name}</option>
           ))}
         </select>
-        <input ref={descInputRef} value={description} onChange={e=>setDescription(e.target.value)} placeholder="Mô tả" style={{flex:2,minWidth:120,padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff'}} />
-        <input value={amount} onChange={e=>setAmount(e.target.value)} placeholder="Số tiền" type="number" style={{width:110,minWidth:90,padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff'}} />
-        <input value={date} onChange={e=>setDate(e.target.value)} type="datetime-local" style={{width:180,minWidth:120,padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff'}} />
-        <button type="submit" style={{padding:'12px 18px',borderRadius:8,background:'#2ecc40',color:'#fff',border:'none',fontWeight:700,fontSize:16,minWidth:90}}>Thêm</button>
+        <input ref={descInputRef} value={description} onChange={e=>setDescription(e.target.value)} placeholder="Mô tả" style={{flex:2,minWidth:120,padding:10,borderRadius:8,border:'1px solid #ccc',fontSize:15,color:'#222',background:'#fff',width:'100%'}} />
+        <input value={amount} onChange={e=>setAmount(e.target.value)} placeholder="Số tiền" type="number" style={{width:'100%',minWidth:90,padding:10,borderRadius:8,border:'1px solid #ccc',fontSize:15,color:'#222',background:'#fff'}} />
+        <input value={date} onChange={e=>setDate(e.target.value)} type="datetime-local" style={{width:'100%',minWidth:120,padding:10,borderRadius:8,border:'1px solid #ccc',fontSize:15,color:'#222',background:'#fff'}} />
+        <button type="submit" style={{padding:'10px 16px',borderRadius:8,background:'#2ecc40',color:'#fff',border:'none',fontWeight:700,fontSize:15,minWidth:90,width:'100%'}}>Thêm</button>
       </form>
-      <div
-        style={{
-          display: 'flex',
-          gap: 24,
-          alignItems: 'flex-end',
-          marginBottom: 18,
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 140 }}>
-          <label style={{ fontWeight: 600, color: '#222', marginBottom: 4 }}>Danh mục</label>
-          <select
-            value={entryFilterCategory}
-            onChange={e => setEntryFilterCategory(e.target.value)}
-            style={{ padding: 8, borderRadius: 6, minWidth: 120 }}
-          >
+      <div style={{display:'flex',gap:16,alignItems:'flex-end',marginBottom:14,flexWrap:'wrap',justifyContent:'center',width:'100%'}}>
+        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-start',minWidth:120,flex:1}}>
+          <label style={{fontWeight:600,color:'#222',marginBottom:4}}>Danh mục</label>
+          <select value={entryFilterCategory} onChange={e=>setEntryFilterCategory(e.target.value)} style={{padding:8,borderRadius:6,minWidth:100,width:'100%'}}>
             <option value="all">Tất cả</option>
             {categories.map(cat => (
               <option key={cat.id} value={cat.name}>
@@ -196,13 +191,9 @@ const EntryManager: React.FC<Props> = ({
             ))}
           </select>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 140 }}>
-          <label style={{ fontWeight: 600, color: '#222', marginBottom: 4 }}>Tháng/Năm</label>
-          <select
-            value={filterMonthYear}
-            onChange={e => setFilterMonthYear(e.target.value)}
-            style={{ padding: 8, borderRadius: 6, minWidth: 120 }}
-          >
+        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-start',minWidth:120,flex:1}}>
+          <label style={{fontWeight:600,color:'#222',marginBottom:4}}>Tháng/Năm</label>
+          <select value={filterMonthYear} onChange={e=>setFilterMonthYear(e.target.value)} style={{padding:8,borderRadius:6,minWidth:100,width:'100%'}}>
             {monthYearOptions.map(opt => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}

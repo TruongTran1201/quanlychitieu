@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { MAIN_MENU_STYLE_REACT } from '../styleConfig'
 
 interface AdminPanelProps {
   allUsers: any[]
@@ -32,8 +31,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ allUsers, rolesList, deleteRole
   const pagedUsers = allUsers.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   return (
-    <div className="admin-panel" style={MAIN_MENU_STYLE_REACT}>
-      <h2 style={{fontSize:24,fontWeight:800,color:'#2ecc40',marginBottom:24, textAlign:'center'}}>Quản trị người dùng</h2>
+    <div className="admin-panel" style={{
+  maxWidth: 480,
+  margin: '0 auto',
+  padding: '12px 8px 32px 8px',
+  boxSizing: 'border-box',
+  minHeight: '100vh',
+  width: '100vw',
+}}>
+      <h3 style={{marginBottom:24,fontSize:22,fontWeight:800,color:'#2ecc40',textAlign:'center'}}>Quản trị</h3>
       <button
         style={{marginBottom:24,padding:'10px 20px',borderRadius:8,background:'#2ecc40',color:'#fff',border:'none',fontWeight:700,fontSize:16,cursor:'pointer',minWidth:120}}
         onClick={() => setShowAddRole(v => !v)}

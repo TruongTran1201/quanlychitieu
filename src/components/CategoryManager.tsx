@@ -1,5 +1,4 @@
 import React from 'react'
-import { MAIN_MENU_STYLE_REACT } from '../styleConfig'
 
 interface Category {
   id: number
@@ -45,11 +44,18 @@ const CategoryManager: React.FC<Props> = ({
   cancelEditCategory,
   catInputRef
 }) => (
-  <div className="category-manager" style={MAIN_MENU_STYLE_REACT}>
-    <h3 style={{marginBottom:24,fontSize:24,fontWeight:800,color:'#2ecc40',textAlign:'center'}}>Quản lý danh mục</h3>
+  <div className="category-manager" style={{
+    maxWidth: 480,
+    margin: '0 auto',
+    padding: '12px 8px 32px 8px',
+    boxSizing: 'border-box',
+    minHeight: '100vh',
+    width: '100vw',
+  }}>
+    <h3 style={{marginBottom:24,fontSize:22,fontWeight:800,color:'#2ecc40',textAlign:'center'}}>Quản lý danh mục</h3>
     <form onSubmit={addCategory} style={{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap',alignItems:'center'}}>
-      <input ref={catInputRef} value={catName} onChange={e=>setCatName(e.target.value)} placeholder="Tên danh mục" style={{flex:1,minWidth:120,padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff'}} />
-      <input value={catGroup} onChange={e=>setCatGroup(e.target.value)} placeholder="Nhóm" style={{flex:1,minWidth:100,padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff'}} />
+      <input ref={catInputRef} value={catName} onChange={e=>setCatName(e.target.value)} placeholder="Tên danh mục" style={{flex:1,minWidth:120,padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff', width: '100%'}} />
+      <input value={catGroup} onChange={e=>setCatGroup(e.target.value)} placeholder="Nhóm" style={{flex:1,minWidth:100,padding:12,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff', width: '100%'}} />
       <button type="submit" style={{padding:'12px 18px',borderRadius:8,background:'#2ecc40',color:'#fff',border:'none',fontWeight:700,fontSize:16,minWidth:90}}>Thêm</button>
     </form>
     <ul style={{listStyle:'none',padding:0,margin:0}}>
@@ -57,8 +63,8 @@ const CategoryManager: React.FC<Props> = ({
         <li key={cat.id} style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
           {catEditId === cat.id ? (
             <>
-              <input value={catEditName} onChange={e=>setCatEditName(e.target.value)} style={{flex:1,padding:10,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff'}} />
-              <input value={catEditGroup} onChange={e=>setCatEditGroup(e.target.value)} style={{flex:1,padding:10,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff'}} placeholder="Nhóm" />
+              <input value={catEditName} onChange={e=>setCatEditName(e.target.value)} style={{flex:1,padding:10,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff', width: '100%'}} />
+              <input value={catEditGroup} onChange={e=>setCatEditGroup(e.target.value)} style={{flex:1,padding:10,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff', width: '100%'}} placeholder="Nhóm" />
               <button onClick={saveEditCategory} style={{padding:'10px 18px',borderRadius:8,background:'#3498db',color:'#fff',border:'none',fontWeight:600}}>Lưu</button>
               <button onClick={cancelEditCategory} style={{padding:'10px 18px',borderRadius:8,background:'#aaa',color:'#fff',border:'none',fontWeight:600}}>Hủy</button>
             </>

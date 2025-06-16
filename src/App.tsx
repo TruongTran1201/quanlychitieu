@@ -110,7 +110,7 @@ function App() {
         <div className="user-info-bar">
           {auth.user && (
             <>
-              <span className="user-email">{auth.user.email}</span>
+              <span className="user-email" style={{ color: '#222', fontWeight: 600 }}>{auth.user.email}</span>
               <button className="logout-btn" onClick={auth.handleLogout}>Đăng xuất</button>
             </>
           )}

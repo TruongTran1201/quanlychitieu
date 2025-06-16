@@ -89,8 +89,16 @@ const ReportView: React.FC<Props> = ({
   }, [years, monthsInYear]);
 
   return (
-    <div className="report-view" style={MAIN_MENU_STYLE_REACT}>
-      <h2 style={{marginBottom:24,fontSize:26,fontWeight:800,color:'#2ecc40'}}>Báo cáo {selectedMonth === 'all' ? `năm ${selectedYear}` : `tháng ${selectedMonth}/${selectedYear}`}</h2>
+    <div className="report-view" style={{
+      ...MAIN_MENU_STYLE_REACT,
+      maxWidth: 480,
+      margin: '0 auto',
+      padding: '12px 8px 32px 8px',
+      boxSizing: 'border-box',
+      minHeight: '100vh',
+      width: '100vw',
+    }}>
+      <h2 style={{marginBottom:24,fontSize:22,fontWeight:800,color:'#2ecc40'}}>Báo cáo {selectedMonth === 'all' ? `năm ${selectedYear}` : `tháng ${selectedMonth}/${selectedYear}`}</h2>
       {/* Pie chart tổng chi tiêu theo danh mục */}
       {arcs.length > 0 && sumTotal > 0 && (
         <div style={{display:'flex',alignItems:'center',justifyContent:'center',marginBottom:24,gap:32,flexWrap:'wrap'}}>
@@ -112,8 +120,8 @@ const ReportView: React.FC<Props> = ({
         Tổng chi tiêu: {totalAmount.toLocaleString()}₫
       </div>
       {/* FilterBar style đồng bộ EntryFilterBar */}
-      <div style={{marginBottom:24,display:'flex',gap:16,alignItems:'center',flexWrap:'wrap',justifyContent:'center'}}>
-        <div style={{display:'flex',flexDirection:'column'}}>
+      <div style={{marginBottom:24,display:'flex',gap:16,alignItems:'flex-end',flexWrap:'wrap',justifyContent:'center',width:'100%'}}>
+        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-start',minWidth:120,flex:1}}>
           <label htmlFor="report-monthyear" style={{fontWeight:600,color:'#222',marginBottom:4,fontSize:15}}>Tháng/Năm</label>
           <select
             id="report-monthyear"
@@ -129,16 +137,16 @@ const ReportView: React.FC<Props> = ({
                 setSelectedYear(Number(year));
               }
             }}
-            style={{padding:8,borderRadius:6,minWidth:120}}
+            style={{padding:8,borderRadius:6,minWidth:100,width:'100%'}}
           >
             {monthYearOptions.map(opt => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
         </div>
-        <div style={{display:'flex',flexDirection:'column'}}>
+        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-start',minWidth:120,flex:1}}>
           <label htmlFor="report-group" style={{fontWeight:600,color:'#222',marginBottom:4,fontSize:15}}>Nhóm</label>
-          <select id="report-group" value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)} style={{padding:8,borderRadius:6,minWidth:120}}>
+          <select id="report-group" value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)} style={{padding:8,borderRadius:6,minWidth:100,width:'100%'}}>
             <option value="all">Tất cả</option>
             {groupList.map(group => (
               <option key={group} value={group}>{group}</option>
