@@ -56,17 +56,16 @@ function App() {
   const [search, setSearch] = useState('');
   const [minAmount, setMinAmount] = useState('');
   const [maxAmount, setMaxAmount] = useState('');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  // const [fromDate, setFromDate] = useState('');
+  // const [toDate, setToDate] = useState('');
 
   // Lọc nâng cao cho entries
   const advancedFilteredEntries = filteredEntries.filter(e => {
     const matchSearch = !search || (e.description?.toLowerCase().includes(search.toLowerCase()));
     const matchMin = !minAmount || e.amount >= Number(minAmount);
     const matchMax = !maxAmount || e.amount <= Number(maxAmount);
-    const matchFrom = !fromDate || new Date(e.date) >= new Date(fromDate);
-    const matchTo = !toDate || new Date(e.date) <= new Date(toDate + 'T23:59');
-    return matchSearch && matchMin && matchMax && matchFrom && matchTo;
+    // Bỏ lọc theo fromDate, toDate
+    return matchSearch && matchMin && matchMax;
   });
 
   // Helper kiểm tra quyền
@@ -184,8 +183,6 @@ function App() {
                 search={search} setSearch={setSearch}
                 minAmount={minAmount} setMinAmount={setMinAmount}
                 maxAmount={maxAmount} setMaxAmount={setMaxAmount}
-                fromDate={fromDate} setFromDate={setFromDate}
-                toDate={toDate} setToDate={setToDate}
               />
             </>
           )}
