@@ -8,12 +8,16 @@ import CategoryManager from './components/CategoryManager';
 import EntryManager from './components/EntryManager';
 import ReportView from './components/ReportView';
 import AdminPanel from './components/AdminPanel';
+import MonthlyStats from './components/MonthlyStats';
+import ExportExcel from './components/ExportCSV';
+import AdvancedFilterBar from './components/AdvancedFilterBar';
+import PieCategoryChart from './components/PieCategoryChart';
 
 function App() {
   // Auth
   const auth = useAuth();
   // Tab state
-  const [activeTab, setActiveTab] = useState<'category' | 'entry' | 'report' | 'admin'>('entry');
+  const [activeTab, setActiveTab] = useState<'category' | 'entry' | 'report' | 'admin' | 'stats'>('entry');
   // Entries
   const entriesState = useEntries(auth.user);
   // Categories
@@ -23,8 +27,6 @@ function App() {
 
   // Filter/search state for EntryManager
   const [entryFilterCategory, setEntryFilterCategory] = useState<string>('all');
-  const [entryFilterMonth, setEntryFilterMonth] = useState<string>('all');
-  const entryMonths = Array.from(new Set(entriesState.entries.map(e => new Date(e.date).getMonth() + 1))).sort((a, b) => a - b);
 
   // Các state cho báo cáo (ReportView)
   const years = Array.from(new Set(entriesState.entries.map(e => new Date(e.date).getFullYear()))).sort((a, b) => b - a);
@@ -50,21 +52,35 @@ function App() {
     return month === Number(selectedMonth);
   });
 
-  // Đồng bộ tab với path trên trình duyệt
-  useEffect(() => {
-    // Đọc path khi load
-    const path = window.location.pathname.replace(/^\//, '');
-    if (['entry', 'report', 'category', 'admin'].includes(path)) {
-      setActiveTab(path as any);
-    }
-  }, []);
-  useEffect(() => {
-    // Đổi path khi đổi tab
-    window.history.pushState({}, '', '/' + activeTab);
-  }, [activeTab]);
+  // State cho lọc nâng cao
+  const [search, setSearch] = useState('');
+  const [minAmount, setMinAmount] = useState('');
+  const [maxAmount, setMaxAmount] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+
+  // Lọc nâng cao cho entries
+  const advancedFilteredEntries = filteredEntries.filter(e => {
+    const matchSearch = !search || (e.description?.toLowerCase().includes(search.toLowerCase()));
+    const matchMin = !minAmount || e.amount >= Number(minAmount);
+    const matchMax = !maxAmount || e.amount <= Number(maxAmount);
+    const matchFrom = !fromDate || new Date(e.date) >= new Date(fromDate);
+    const matchTo = !toDate || new Date(e.date) <= new Date(toDate + 'T23:59');
+    return matchSearch && matchMin && matchMax && matchFrom && matchTo;
+  });
 
   // Helper kiểm tra quyền
   const hasRole = (role: string) => rolesState.roleName.split(',').includes(role) || rolesState.roleName === 'SuperAdmin';
+
+  // State cho dark mode
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    return saved ? saved === 'true' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+  useEffect(() => {
+    document.body.classList.toggle('dark-mode', darkMode);
+    localStorage.setItem('darkMode', darkMode.toString());
+  }, [darkMode]);
 
   if (auth.showHome) {
     return (
@@ -104,8 +120,14 @@ function App() {
   }
 
   return (
-    <div className="app" style={{ minHeight: '100vh', background: '#f6f8fa', fontFamily: 'Segoe UI,Roboto,sans-serif' }}>
+    <div className={`app${darkMode ? ' dark-mode' : ''}`} style={{ minHeight: '100vh', background: darkMode ? '#181a1b' : '#f6f8fa', fontFamily: 'Segoe UI,Roboto,sans-serif' }}>
       <div style={{ width: '100%', maxWidth: 900, minWidth: 0, margin: '0 auto', padding: '48px 8px', position: 'relative', boxSizing: 'border-box' }}>
+        {/* Dark mode toggle */}
+        <div style={{ position: 'absolute', left: 0, top: 0, zIndex: 3, padding: 8 }}>
+          <button onClick={() => setDarkMode(d => !d)} style={{ background: 'none', border: 'none', color: darkMode ? '#2ecc40' : '#222', fontSize: 22, cursor: 'pointer', fontWeight: 700 }} title="Chuyển chế độ sáng/tối">
+            {darkMode ? '🌙' : '☀️'}
+          </button>
+        </div>
         {/* User info top right */}
         <div className="user-info-bar">
           {auth.user && (
@@ -120,10 +142,11 @@ function App() {
           <select
             id="main-menu"
             value={activeTab}
-            onChange={e => setActiveTab(e.target.value as 'entry' | 'report' | 'category' | 'admin')}
+            onChange={e => setActiveTab(e.target.value as any)}
             style={{ padding: 14, borderRadius: 8, border: 'none', fontSize: 18, background: '#fff', color: '#222', fontWeight: 600, boxShadow: '0 2px 8px #0001', outline: 'none', cursor: 'pointer', minWidth: 160 }}
           >
             <option value="entry">📝 Nhập chi tiêu</option>
+            <option value="stats">📈 Thống kê</option>
             {hasRole('Report') && (
               <option value="report">📊 Báo cáo</option>
             )}
@@ -137,27 +160,34 @@ function App() {
         </div>
         <div style={{ width: '100%', maxWidth: 600, margin: '0 auto' }}>
           {activeTab === 'entry' && (
-            <EntryManager
-              entries={filteredEntries} // Sửa lại: truyền toàn bộ danh sách đã lọc, không slice ở ngoài
-              loading={entriesState.loading}
-              addEntry={entriesState.addEntry}
-              deleteEntry={entriesState.deleteEntry}
-              category={entriesState.category}
-              setCategory={entriesState.setCategory}
-              description={entriesState.description}
-              setDescription={entriesState.setDescription}
-              amount={entriesState.amount}
-              setAmount={entriesState.setAmount}
-              date={entriesState.date}
-              setDate={entriesState.setDate}
-              categories={categoriesState.categories}
-              descInputRef={entriesState.descInputRef as React.RefObject<HTMLInputElement>}
-              entryFilterCategory={entryFilterCategory}
-              setEntryFilterCategory={setEntryFilterCategory}
-              entryFilterMonth={entryFilterMonth}
-              setEntryFilterMonth={setEntryFilterMonth}
-              entryMonths={entryMonths}
-            />
+            <>
+              <ExportExcel entries={advancedFilteredEntries} />
+              <EntryManager
+                entries={advancedFilteredEntries}
+                loading={entriesState.loading}
+                addEntry={entriesState.addEntry}
+                deleteEntry={entriesState.deleteEntry}
+                category={entriesState.category}
+                setCategory={entriesState.setCategory}
+                description={entriesState.description}
+                setDescription={entriesState.setDescription}
+                amount={entriesState.amount}
+                setAmount={entriesState.setAmount}
+                date={entriesState.date}
+                setDate={entriesState.setDate}
+                categories={categoriesState.categories}
+                descInputRef={entriesState.descInputRef as React.RefObject<HTMLInputElement>}
+                entryFilterCategory={entryFilterCategory}
+                setEntryFilterCategory={setEntryFilterCategory}
+              />
+              <AdvancedFilterBar
+                search={search} setSearch={setSearch}
+                minAmount={minAmount} setMinAmount={setMinAmount}
+                maxAmount={maxAmount} setMaxAmount={setMaxAmount}
+                fromDate={fromDate} setFromDate={setFromDate}
+                toDate={toDate} setToDate={setToDate}
+              />
+            </>
           )}
           {activeTab === 'report' && hasRole('Report') && (
             <ReportView
@@ -195,6 +225,7 @@ function App() {
                 categoriesState.setCatEditName('');
                 categoriesState.setCatEditGroup('');
               }}
+              entries={entriesState.entries}
             />
           )}
           {activeTab === 'category' && !hasRole('Category') && (
@@ -210,6 +241,16 @@ function App() {
           )}
           {activeTab === 'admin' && !hasRole('SuperAdmin') && (
             <div style={{ color: '#e74c3c', textAlign: 'center', margin: '32px 0', fontWeight: 700, fontSize: 18 }}>Bạn không có quyền truy cập mục này.</div>
+          )}
+          {activeTab === 'stats' && (
+            <div style={{marginBottom:24}}>
+              <label htmlFor="stats-year" style={{fontWeight:600,marginRight:8}}>Năm:</label>
+              <select id="stats-year" value={selectedYear} onChange={e=>setSelectedYear(Number(e.target.value))} style={{padding:8,borderRadius:6,minWidth:80}}>
+                {years.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+              <MonthlyStats entries={entriesState.entries} year={selectedYear} />
+              <PieCategoryChart entries={entriesState.entries.filter(e => new Date(e.date).getFullYear() === selectedYear)} />
+            </div>
           )}
         </div>
       </div>

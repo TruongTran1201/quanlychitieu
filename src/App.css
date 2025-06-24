@@ -229,6 +229,19 @@ td, th {
   text-overflow: ellipsis;
 }
 
+/* Cho phép cuộn ngang bảng trên mobile */
+.entry-manager,
+.report-view,
+.admin-panel,
+.category-manager {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 480px;
+}
+
 @media (max-width: 700px) {
   td, th, .entry-manager td, .entry-manager th, .report-view td, .report-view th, .admin-panel td, .admin-panel th {
     max-width: 90px;
@@ -236,9 +249,6 @@ td, th {
   .entry-manager span, .report-view span, .admin-panel span {
     max-width: 80px;
   }
-}
-/* Responsive for mobile/tablet */
-@media (max-width: 700px) {
   .app > div,
   .admin-panel,
   .category-manager,
@@ -249,9 +259,11 @@ td, th {
     border-radius: 10px !important;
     margin: 0 auto 16px auto !important;
     font-size: 15px !important;
+    min-width: unset !important;
   }
   table {
     font-size: 14px !important;
+    min-width: 340px;
   }
   h2, h3, h4 {
     font-size: 20px !important;
@@ -270,9 +282,11 @@ td, th {
   .report-view {
     padding: 4px 1vw !important;
     font-size: 14px !important;
+    min-width: unset !important;
   }
   table {
     font-size: 13px !important;
+    min-width: 260px;
   }
   h2, h3, h4 {
     font-size: 17px !important;
@@ -306,4 +320,102 @@ td, th {
     font-size: 22px;
     margin-top: 0;
   }
+}
+
+/* Dark mode styles */
+body.dark-mode, .dark-mode {
+  background: #181a1b !important;
+  color: #e0e0e0 !important;
+}
+.dark-mode .savings-app,
+.dark-mode .expense-app,
+.dark-mode .app > div,
+.dark-mode .admin-panel,
+.dark-mode .category-manager,
+.dark-mode .entry-manager,
+.dark-mode .report-view {
+  background: #23272a !important;
+  color: #e0e0e0 !important;
+  box-shadow: 0 2px 16px #0004;
+}
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+  background: #23272a !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #444 !important;
+}
+.dark-mode button {
+  background: #2ecc40 !important;
+  color: #fff !important;
+}
+.dark-mode,
+.dark-mode * {
+  color: #e0e0e0 !important;
+  border-color: #444 !important;
+}
+.dark-mode label,
+.dark-mode th,
+.dark-mode .user-email,
+.dark-mode .logout-btn {
+  color: #e0e0e0 !important;
+}
+.dark-mode .entry-manager td,
+.dark-mode .entry-manager th,
+.dark-mode .category-manager td,
+.dark-mode .category-manager th,
+.dark-mode .admin-panel td,
+.dark-mode .admin-panel th {
+  color: #e0e0e0 !important;
+}
+.dark-mode .main-title {
+  color: #2ecc40 !important;
+}
+.dark-mode .report {
+  background: #23272a !important;
+  color: #e0e0e0 !important;
+}
+.dark-mode .auth-form input {
+  background: #23272a !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #444 !important;
+}
+.dark-mode .auth-btn {
+  background: #2ecc40 !important;
+  color: #fff !important;
+}
+.dark-mode .switch-auth-btn {
+  color: #2ecc40 !important;
+}
+.dark-mode .entry-manager table,
+.dark-mode .entry-manager thead,
+.dark-mode .entry-manager tbody,
+.dark-mode .entry-manager tr,
+.dark-mode .entry-manager td,
+.dark-mode .entry-manager th {
+  background: #181a1b !important;
+  color: #e0e0e0 !important;
+  border-color: #333 !important;
+}
+.dark-mode .entry-manager tr {
+  border-bottom: 1px solid #333 !important;
+}
+.dark-mode .entry-manager thead tr {
+  background: #23272a !important;
+}
+.dark-mode .report-view table,
+.dark-mode .report-view thead,
+.dark-mode .report-view tbody,
+.dark-mode .report-view tr,
+.dark-mode .report-view td,
+.dark-mode .report-view th {
+  background: #181a1b !important;
+  color: #e0e0e0 !important;
+  border-color: #333 !important;
+}
+.dark-mode .report-view tr {
+  border-bottom: 1px solid #333 !important;
+}
+.dark-mode .report-view thead tr {
+  background: #23272a !important;
 }

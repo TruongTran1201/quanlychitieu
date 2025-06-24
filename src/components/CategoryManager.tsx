@@ -7,6 +7,11 @@ interface Category {
   user_id: string
 }
 
+interface Entry {
+  id: number;
+  category: string;
+}
+
 interface Props {
   categories: Category[]
   addCategory: (e: React.FormEvent) => void
@@ -24,6 +29,7 @@ interface Props {
   saveEditCategory: () => void
   cancelEditCategory: () => void
   catInputRef?: React.RefObject<HTMLInputElement>
+  entries: Entry[] // Thêm prop entries
 }
 
 const CategoryManager: React.FC<Props> = ({
@@ -42,7 +48,8 @@ const CategoryManager: React.FC<Props> = ({
   startEditCategory,
   saveEditCategory,
   cancelEditCategory,
-  catInputRef
+  catInputRef,
+  entries
 }) => (
   <div className="category-manager" style={{
     maxWidth: 480,
@@ -59,25 +66,30 @@ const CategoryManager: React.FC<Props> = ({
       <button type="submit" style={{padding:'12px 18px',borderRadius:8,background:'#2ecc40',color:'#fff',border:'none',fontWeight:700,fontSize:16,minWidth:90}}>Thêm</button>
     </form>
     <ul style={{listStyle:'none',padding:0,margin:0}}>
-      {categories.map(cat => (
-        <li key={cat.id} style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
-          {catEditId === cat.id ? (
-            <>
-              <input value={catEditName} onChange={e=>setCatEditName(e.target.value)} style={{flex:1,padding:10,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff', width: '100%'}} />
-              <input value={catEditGroup} onChange={e=>setCatEditGroup(e.target.value)} style={{flex:1,padding:10,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff', width: '100%'}} placeholder="Nhóm" />
-              <button onClick={saveEditCategory} style={{padding:'10px 18px',borderRadius:8,background:'#3498db',color:'#fff',border:'none',fontWeight:600}}>Lưu</button>
-              <button onClick={cancelEditCategory} style={{padding:'10px 18px',borderRadius:8,background:'#aaa',color:'#fff',border:'none',fontWeight:600}}>Hủy</button>
-            </>
-          ) : (
-            <>
-              <span style={{flex:1,fontSize:16, color:'#222'}}>{cat.name}</span>
-              <span style={{flex:1,fontSize:15, color:'#888'}}>{cat.group}</span>
-              <button onClick={()=>startEditCategory(cat.id,cat.name,cat.group)} style={{padding:'10px 18px',borderRadius:8,background:'#f1c40f',color:'#fff',border:'none',fontWeight:600}}>Sửa</button>
-              <button onClick={()=>deleteCategory(cat.id)} style={{padding:'10px 18px',borderRadius:8,background:'#e74c3c',color:'#fff',border:'none',fontWeight:600}}>Xóa</button>
-            </>
-          )}
-        </li>
-      ))}
+      {categories.map(cat => {
+        const hasLinkedEntry = entries.some(e => e.category === cat.name);
+        return (
+          <li key={cat.id} style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
+            {catEditId === cat.id ? (
+              <>
+                <input value={catEditName} onChange={e=>setCatEditName(e.target.value)} style={{flex:1,padding:10,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff', width: '100%'}} />
+                <input value={catEditGroup} onChange={e=>setCatEditGroup(e.target.value)} style={{flex:1,padding:10,borderRadius:8,border:'1px solid #ccc',fontSize:16, color:'#222', background:'#fff', width: '100%'}} placeholder="Nhóm" />
+                <button onClick={saveEditCategory} style={{padding:'10px 18px',borderRadius:8,background:'#3498db',color:'#fff',border:'none',fontWeight:600}}>Lưu</button>
+                <button onClick={cancelEditCategory} style={{padding:'10px 18px',borderRadius:8,background:'#aaa',color:'#fff',border:'none',fontWeight:600}}>Hủy</button>
+              </>
+            ) : (
+              <>
+                <span style={{flex:1,fontSize:16, color:'#222'}}>{cat.name}</span>
+                <span style={{flex:1,fontSize:15, color:'#888'}}>{cat.group}</span>
+                <button onClick={()=>startEditCategory(cat.id,cat.name,cat.group)} style={{padding:'10px 18px',borderRadius:8,background:'#f1c40f',color:'#fff',border:'none',fontWeight:600}}>Sửa</button>
+                {!hasLinkedEntry && (
+                  <button onClick={()=>deleteCategory(cat.id)} style={{padding:'10px 18px',borderRadius:8,background:'#e74c3c',color:'#fff',border:'none',fontWeight:600}}>Xóa</button>
+                )}
+              </>
+            )}
+          </li>
+        );
+      })}
     </ul>
   </div>
 )

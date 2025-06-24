@@ -29,9 +29,6 @@ interface Props {
   descInputRef?: React.RefObject<HTMLInputElement>; // Thêm prop descInputRef
   entryFilterCategory: string;
   setEntryFilterCategory: (cat: string) => void;
-  entryFilterMonth: string;
-  setEntryFilterMonth: (month: string) => void;
-  entryMonths: number[];
 }
 
 const EntryManager: React.FC<Props> = ({
@@ -50,8 +47,7 @@ const EntryManager: React.FC<Props> = ({
   categories,
   descInputRef,
   entryFilterCategory,
-  setEntryFilterCategory,
-  entryFilterMonth
+  setEntryFilterCategory
 }) => {
   const [editId, setEditId] = useState<number|null>(null)
   const [editDesc, setEditDesc] = useState('')
@@ -67,7 +63,7 @@ const EntryManager: React.FC<Props> = ({
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [filterMonthYear, setFilterMonthYear] = useState('all');
-  
+
   // Filter entries theo category và month
   const filteredEntries = entries.filter(e => {
     const matchCategory = entryFilterCategory === 'all' || e.category === entryFilterCategory;
@@ -86,7 +82,7 @@ const EntryManager: React.FC<Props> = ({
   const sortedEntries = [...filteredEntries].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const pagedEntries = sortedEntries.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
-  React.useEffect(() => { setPage(1); }, [itemsPerPage, entryFilterCategory, entryFilterMonth]);
+  React.useEffect(() => { setPage(1); }, [itemsPerPage, entryFilterCategory]);
 
   const startEdit = (entry: Entry) => {
     setEditId(entry.id)

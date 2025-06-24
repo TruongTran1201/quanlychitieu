@@ -43,7 +43,7 @@ export function useEntries(user: any) {
       category,
       description: description.trim(),
       amount: Number(amount),
-      date: entryDate
+      date: entryDate,
     };
     const { data, error } = await supabase
       .from('entries')
